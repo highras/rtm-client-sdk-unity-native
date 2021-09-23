@@ -518,7 +518,7 @@ namespace com.fpnn.rtm
             quest.Param("token", authStatsInfo.token);
 
 #if UNITY_2017_1_OR_NEWER
-            quest.Param("version", "Unity-" + RTMConfig.SDKVersion);
+            quest.Param("version", "Unity-Native-" + RTMConfig.SDKVersion);
 #else
             quest.Param("version", "C#-" + RTMConfig.SDKVersion);
 #endif
