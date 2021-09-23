@@ -42,6 +42,15 @@
         public virtual void PushGroupFile(RTMMessage message) { }
         public virtual void PushRoomFile(RTMMessage message) { }
         public virtual void PushBroadcastFile(RTMMessage message) { }
+
+        //-- RTC
+        public virtual void PushEnterRTCRoom(long roomId, long uid, long mtime) { }
+        public virtual void PushExitRTCRoom(long roomId, long uid, long mtime) { }
+        public virtual void PushRTCRoomClosed(long roomId) { }
+        public virtual void PushInviteIntoRTCRoom(long fromUid, long roomId) { }
+        public virtual void PushKickOutRTCRoom(long fromUid, long roomId) { }
+        public virtual void PushPullIntoRTCRoom(long roomId, string token) { }
+        public virtual void PushAdminCommand(RTCAdminCommand command, HashSet<long> uids) { }
     }
 
 ### Session Close Event
@@ -73,3 +82,32 @@ The parameter `message` is the URL of file in CDN.
 #### ReloginWillStart & ReloginCompleted
 
 Will triggered when connection lost after **first successful login** if user's token is available and user isn't forbidden.
+
+#### RTC
+
+##### User Enter RTC Room
+
+A user entered the RTC room.
+
+##### User Exit RTC Room
+
+A user exited the RTC room.
+
+##### RTC Room Closed
+
+A RTC room is cloesd.
+
+##### Invited Into RTC Room
+
+A user is invited into the RTC room.
+##### Kicked out of RTC Room
+
+A user is kicked out of the RTC room.
+
+##### Pulled into RTC Room
+
+A user is pulled into the RTC room.
+
+##### Administrator Command
+
+Notification of the administrator command.

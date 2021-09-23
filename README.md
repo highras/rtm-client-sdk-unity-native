@@ -117,6 +117,33 @@ Please get your project params from RTM Console.
 		//-- Sync interface
 		public int SendRoomChat(out long messageId, long roomId, string message, string attrs = "", int timeout = 0);
 
+### RTC
+
+#### Init (Required)
+	using com.fpnn.rtm;
+	RTCEngine.Init();
+
+#### Quick Start
+	client = LoginRTM(endpoint, pid, uid, token);
+	RTCEngine.ActiveRTCClient(client);
+    client.CreateRTCRoom((long roomId, int errorCode) =>
+    {
+        if (errorCode == com.fpnn.ErrorCode.FPNN_EC_OK)
+        {
+            RTCEngine.setActiveRoomId(roomId);
+        }
+        else
+        {
+            client.EnterRTCRoom((long tmpRoomId, RTCRoomType roomType, int tmpErrorCode) =>
+            {
+                RTCEngine.setActiveRoomId(tmpRoomId);
+            }, 666);
+        }
+    }, 666, RTCRoomType.VoiceRoom);
+    client.ExitRTCRoom((int errorCode) =>
+    {
+    }, 666);
+
 ### SDK Version
 
 	C# `Console.WriteLine("com.fpnn.rtm.RTMConfig.SDKVersion");`

@@ -158,6 +158,10 @@ Please refer [Users Functions](Users.md)
 
 Please refer [Data Functions](Data.md)
 
+#### RTC
+
+Please refer [RTC](RTC.md)
+
 ### Error Codes
 
 [RTM SDK Error Codes](https://github.com/highras/rtm-client-sdk-unity/blob/master/Assets/Plugins/rtm/ErrorCode.cs)  

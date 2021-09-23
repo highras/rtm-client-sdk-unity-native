@@ -180,3 +180,32 @@ The fields are same as the `class RTMMessage`.
 Using as the result of history message & chat methods.
 
 When calling history message or history chat methods for fetching subsequent message or chat data, please using the corresponding fields in the result.
+
+### RTCRoomType
+
+    public enum RTCRoomType : byte
+    { 
+        InvalidRoom = 0,
+        VoiceRoom = 1,
+        VideoRoom = 2,
+    }
+
+Using as the type of the rtc rooms.
+
+VoiceRoom for only voice conmunication.
+VideoRoom for both voice and video conmunication.
+
+### RTCAdminCommand
+    public enum RTCAdminCommand: int
+    {
+        AppointAdministrator = 0,
+        DismissAdministrator = 1,
+        ForbidSendingAudio = 2,
+        AllowSendingAudio = 3,
+        ForbidSendingVideo = 4,
+        AllowSendingVideo = 5,
+        CloseOthersMicroPhone = 6,
+        CloseOthersMicroCamera = 7,
+    }
+
+Using as the type of the rtc administrator command.
