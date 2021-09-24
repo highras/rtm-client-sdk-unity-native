@@ -11,7 +11,7 @@ public class Main : MonoBehaviour
         void Stop();
     }
 
-    private string rtmServerEndpoint = "161.189.171.91:13321";
+    private string rtmServerEndpoint = "rtm-nx-front.ilivedata.com:13321";
     private long pid = 11000001;
     private long uid = 7654321;
     private string token = "D3A076E1CCAFD3CB01CB7C8D778153BB";

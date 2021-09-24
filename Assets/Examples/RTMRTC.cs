@@ -85,7 +85,7 @@ public class RTC : Main.ITestCase
 
     static RTMClient LoginRTM(string rtmEndpoint, long pid, long uid, string token)
     {
-        RTMClient client = new RTMClient(rtmEndpoint, "161.189.171.91:13702", pid, uid, new example.common.RTMExampleQuestProcessor());
+        RTMClient client = new RTMClient(rtmEndpoint, "rtc-nx-front.ilivedata.com:13702", pid, uid, new example.common.RTMExampleQuestProcessor());
 
         int errorCode = client.Login(out bool ok, token);
         if (ok)
