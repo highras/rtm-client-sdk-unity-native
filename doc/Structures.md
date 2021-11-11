@@ -193,7 +193,7 @@ When calling history message or history chat methods for fetching subsequent mes
 Using as the type of the rtc rooms.
 
 VoiceRoom for only voice conmunication.
-VideoRoom for both voice and video conmunication.
+VideoRoom for both voice and video conmunication.(not avaliable for now)
 
 ### RTCAdminCommand
     public enum RTCAdminCommand: int

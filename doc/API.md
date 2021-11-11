@@ -6,7 +6,7 @@
 
 ## Current Version
 
-	public static readonly string com.fpnn.rtm.RTMConfig.SDKVersion = "2.7.0";
+	public static readonly string com.fpnn.rtm.RTMConfig.SDKVersion = "1.0.0";
 
 ## Init & Config SDK
 

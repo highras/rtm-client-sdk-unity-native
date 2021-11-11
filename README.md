@@ -6,15 +6,9 @@
 
 * [msgpack-csharp](https://github.com/highras/msgpack-csharp)
 
-* [fpnn-sdk-unity](https://github.com/highras/fpnn-sdk-unity)
-
 ### Compatibility Version:
 
 C# .Net Standard 2.0
-
-### Capability in Funture
-
-Encryption Capability, depending on FPNN C# SDK.
 
 ## Usage
 
@@ -130,23 +124,22 @@ Please get your project params from RTM Console.
     {
         if (errorCode == com.fpnn.ErrorCode.FPNN_EC_OK)
         {
-            RTCEngine.setActiveRoomId(roomId);
+            RTCEngine.setActiveRoomId(roomID);
         }
         else
         {
             client.EnterRTCRoom((long tmpRoomId, RTCRoomType roomType, int tmpErrorCode) =>
             {
                 RTCEngine.setActiveRoomId(tmpRoomId);
-            }, 666);
+            }, roomID);
         }
-    }, 666, RTCRoomType.VoiceRoom);
+    }, roomID, RTCRoomType.VoiceRoom);
     client.ExitRTCRoom((int errorCode) =>
     {
-    }, 666);
+    }, roomID);
 
 ### SDK Version
 
-	C# `Console.WriteLine("com.fpnn.rtm.RTMConfig.SDKVersion");`
 	Unity `Debug.Log("com.fpnn.rtm.RTMConfig.SDKVersion");`
 
 ## API docs
