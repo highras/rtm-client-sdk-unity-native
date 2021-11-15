@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using AOT;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace com.fpnn.rtm
 {
@@ -106,7 +107,7 @@ namespace com.fpnn.rtm
         public void Init() 
         {
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
-            Assert.IsTrue(false, "windows is not supported for now");
+            //Assert.IsTrue(false, "windows is not supported for now");
 #elif (UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
             initNetworkStatusChecker(NetworkStatusCallback);
 #elif UNITY_IOS
