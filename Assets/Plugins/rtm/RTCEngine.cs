@@ -47,6 +47,13 @@ namespace com.fpnn.rtm
             }
         }
 
+        public delegate void LoggerCallBack(IntPtr log, UInt32 len);
+        [MonoPInvokeCallback(typeof(LoggerCallBack))]
+        public static void Log(IntPtr log, UInt32 len)
+        {
+            string payload = Marshal.PtrToStringAnsi(log);
+            Debug.Log(payload);
+        }
 #if UNITY_IOS
         [DllImport("__Internal")]
         private static extern void initRTCEngine(VoiceCallbackDelegate callback, ActiveRoomCallbackDelegate activeRoomCallback, int channelNum);
@@ -87,10 +94,14 @@ namespace com.fpnn.rtm
 
 #if UNITY_ANDROID
         [DllImport("RTCNative")]
-        private static extern void initRTCEngine(VoiceCallbackDelegate callback, int osVersion, int channelNum);
+        //private static extern void initRTCEngine(VoiceCallbackDelegate callback, int osVersion, int channelNum);
+        private static extern void initRTCEngine(IntPtr application, VoiceCallbackDelegate callback, int osVersion, int channelNum);
 
         [DllImport("RTCNative")]
         public static extern void headsetStat();
+
+        [DllImport("RTCNative")]
+        public static extern void SetLogger(LoggerCallBack callback);
 #endif
 
         private volatile static bool running = false;
@@ -194,6 +205,9 @@ namespace com.fpnn.rtm
             }
             var version = new AndroidJavaClass("android.os.Build$VERSION");
             int osVersion = version.GetStatic<int>("SDK_INT");
+            AndroidJavaObject currentActivity = new AndroidJavaClass("com.unity3d.player.UnityPlayer").GetStatic<AndroidJavaObject>("currentActivity");
+            IntPtr application = currentActivity.Call<AndroidJavaObject>("getApplicationContext").GetRawObject();
+            SetLogger(Log);
 #endif
             running = true;
             interLocker = new System.Object();
@@ -206,7 +220,8 @@ namespace com.fpnn.rtm
 #elif UNITY_IOS
             initRTCEngine(VoiceCallback, ActiveRoomCallback, 1);
 #elif UNITY_ANDROID
-            initRTCEngine(VoiceCallback, osVersion, 1);
+            //initRTCEngine(VoiceCallback, osVersion, 1);
+            initRTCEngine(application, VoiceCallback, osVersion, 1);
 #endif
 
             routineThread = new Thread(Routine);
