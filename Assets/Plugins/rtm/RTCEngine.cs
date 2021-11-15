@@ -318,6 +318,8 @@ namespace com.fpnn.rtm
 
         public static void Pause()
         {
+            if (interLocker == null)
+                return;
             RTMClient client = null;
             lock (interLocker)
             {
@@ -330,6 +332,8 @@ namespace com.fpnn.rtm
 
         public static void Resume()
         {
+            if (interLocker == null)
+                return;
             RTMClient client = null;
             lock (interLocker)
             {
