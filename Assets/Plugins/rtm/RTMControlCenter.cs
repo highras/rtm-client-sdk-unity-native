@@ -308,13 +308,6 @@ namespace com.fpnn.rtm
 
                 routineInited = true;
             }
-
-#if UNITY_2017_1_OR_NEWER
-            Application.quitting += () => {
-                RTMControlCenter.Close();
-            };
-#endif
-
         }
 
         private static void RoutineFunc()
@@ -356,6 +349,17 @@ namespace com.fpnn.rtm
 #if UNITY_2017_1_OR_NEWER
             routineThread.Join();
 #endif
+            HashSet<RTMClient> clients = new HashSet<RTMClient>();
+
+            lock (interLocker)
+            {
+                foreach (KeyValuePair<UInt64, RTMClient> kvp in rtmClients)
+                    clients.Add(kvp.Value);
+            }
+
+            foreach (RTMClient client in clients)
+                    client.Close(true, true);
+
         }
     }
 }

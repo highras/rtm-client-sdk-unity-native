@@ -80,10 +80,9 @@ public class Main : MonoBehaviour
         testThread.Join();
         Debug.Log("Test App exited.");
 #if UNITY_EDITOR
-        //ClientManager.Stop();
         RTCEngine.Stop();
+        RTMControlCenter.Close();
         ClientEngine.Close();
-        //Client.closeEngine();
 #endif
     }
 }
