@@ -345,6 +345,7 @@ namespace com.fpnn.rtm
             }
 
             TCPClient client = TCPClient.Create(fileGateEndpoint, true);
+            client.SetQuestProcessor(new RTMMasterProcessor());
             if (errorRecorder != null)
                 client.SetErrorRecorder(errorRecorder);
 

@@ -327,9 +327,8 @@ namespace com.fpnn.rtm
             if (client == null)
                 return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
 
-            Quest quest = new Quest("createRTCRoom");
+            Quest quest = new Quest("enterRTCRoom");
             quest.Param("rid", roomId);
-            quest.Param("type", (Int32)roomType);
 
             Answer answer = client.SendQuest(quest, timeout);
             if (answer.IsException())
