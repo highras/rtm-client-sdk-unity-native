@@ -77,7 +77,7 @@ namespace com.fpnn.rtm
         private static extern void initRTCEngine(VoiceCallbackDelegate callback, ActiveRoomCallbackDelegate activeRoomCallback, int channelNum);
 
         [DllImport("RTCNative")]
-        internal static extern void openMicrophone();
+        public static extern void openMicrophone();
 
         [DllImport("RTCNative")]
         internal static extern void closeMicrophone();
@@ -90,6 +90,11 @@ namespace com.fpnn.rtm
 
         [DllImport("RTCNative")]
         private static extern void receiveVoice(long uid, long seq, byte[] data, int length);
+#endif
+
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
+        [DllImport("RTCNative")]
+        private static extern void destroy();
 #endif
 
 #if UNITY_ANDROID
@@ -214,7 +219,8 @@ namespace com.fpnn.rtm
             timeOffsetBuffer = new Queue();
 
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
-            Assert.IsTrue(false, "windows is not supported for now");
+            initRTCEngine(VoiceCallback, null, 1);
+            //Assert.IsTrue(false, "windows is not supported for now");
 #elif (UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
             initRTCEngine(VoiceCallback, ActiveRoomCallback, 1);
 #elif UNITY_IOS
@@ -235,6 +241,10 @@ namespace com.fpnn.rtm
             running = false;
             closeMicrophone();
             closeVoicePlay();
+
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
+            destroy();
+#endif
             routineThread.Join();
         }
 
