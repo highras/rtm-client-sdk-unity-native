@@ -134,6 +134,10 @@ Please refer [Messages Functions](Messages.md)
 
 Please refer [Audio Functions](Audio.md)
 
+#### Audio Native Functions
+
+Please refer [Audio Native Functions](Audio.Native.md)
+
 #### Files Functions
 
 Please refer [Files Functions](Files.md)
