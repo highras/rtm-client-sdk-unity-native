@@ -20,7 +20,7 @@ namespace com.fpnn.rtm
 
         static internal IAudioRecorderListener audioRecorderListener;
         static internal string language;
-
+        static volatile bool cancelRecord = false;
 
         delegate void VolumnCallbackDelegate(float volumn);
         [MonoPInvokeCallback(typeof(VolumnCallbackDelegate))]
@@ -56,6 +56,11 @@ namespace com.fpnn.rtm
             if (audioRecorderListener != null)
             {
                 audioRecorderListener.RecordEnd();
+                if (cancelRecord)
+                {
+                    cancelRecord = false;
+                    return;
+                }
                 byte[] payload = new byte[length];
                 Marshal.Copy(data, payload, 0, length);
 
@@ -173,6 +178,11 @@ namespace com.fpnn.rtm
             AndroidJavaObject audio = AudioRecord.Call<AndroidJavaObject>("stopRecord");
             int duration = audio.Get<int>("duration");
             byte[] audioData = (byte[])(Array)audio.Get<sbyte[]>("audioData");
+            if (cancelRecord)
+            {
+                cancelRecord = false;
+                return;
+            }
             if (audioRecorderListener != null)
             {
                 RTMAudioData data = new RTMAudioData(audioData, language, duration);
@@ -181,6 +191,12 @@ namespace com.fpnn.rtm
 #else
             stopRecord(StopRecordCallback);
 #endif
+        }
+
+        public void CancelRecord()
+        {
+            cancelRecord = true;
+            StopRecord();
         }
 
         public void Play(RTMAudioData data)
