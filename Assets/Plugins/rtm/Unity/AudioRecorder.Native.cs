@@ -84,6 +84,8 @@ namespace com.fpnn.rtm
 
         [DllImport("__Internal")]
         private static extern void stopPlay();
+#elif UNITY_ANDROID
+
 #else
         [DllImport("RTMNative")]
         private static extern void startRecord(VolumnCallbackDelegate callback, StartRecordCallbackDelegate startCallback);
@@ -108,9 +110,9 @@ namespace com.fpnn.rtm
             {
             }
 
-            public void startRecord()
+            public void startRecord(bool success, string errorMsg)
             {
-                if (AudioRecorderNative.audioRecorderListener != null)
+                if (AudioRecorderNative.audioRecorderListener != null && success)
                     AudioRecorderNative.audioRecorderListener.RecordStart();
             }
 
