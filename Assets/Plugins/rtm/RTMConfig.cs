@@ -11,7 +11,7 @@ namespace com.fpnn.rtm
 
     public class RTMConfig
     {
-        public static readonly string SDKVersion = "1.0.4";
+        public static readonly string SDKVersion = "1.0.5";
         public static readonly string InterfaceVersion = "2.7.0";
 
         internal static int lostConnectionAfterLastPingInSeconds = 60;

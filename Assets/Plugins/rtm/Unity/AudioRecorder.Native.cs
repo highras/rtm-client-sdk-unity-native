@@ -177,7 +177,8 @@ namespace com.fpnn.rtm
 #if UNITY_ANDROID
             AndroidJavaObject audio = AudioRecord.Call<AndroidJavaObject>("stopRecord");
             int duration = audio.Get<int>("duration");
-            byte[] audioData = (byte[])(Array)audio.Get<sbyte[]>("audioData");
+            byte[] audioData = audio.Get<byte[]>("audioData");
+            //byte[] audioData = (byte[])(Array)audio.Get<sbyte[]>("audioData");
             if (cancelRecord)
             {
                 cancelRecord = false;
