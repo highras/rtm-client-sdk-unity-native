@@ -213,6 +213,11 @@ namespace com.fpnn
             return isConnected(clientDelegate);
         }
 
+        public UInt64 ConnectionID()
+        {
+            return connectionId(clientDelegate);
+        }
+
         //----------------[ Connect Operations ]-----------------------//
         public void AsyncConnect()
         {

@@ -3,9 +3,9 @@ using UnityEngine;
 using com.fpnn.rtm;
 
 class MyAudioRecorderListener : AudioRecorderNative.IAudioRecorderListener {    
-    public void RecordStart()
+    public void RecordStart(bool success)
     { 
-        Debug.Log("RecordStart");
+        Debug.Log("RecordStart success = " + success);
     }
 
     public void RecordEnd()
@@ -15,7 +15,7 @@ class MyAudioRecorderListener : AudioRecorderNative.IAudioRecorderListener {
 
     public void OnRecord(RTMAudioData audioData)
     {
-        Debug.Log("OnRecord");
+        Debug.Log("OnRecord " + audioData.Duration);
         AudioRecorderNative.Instance.Play(audioData);
     }
 

@@ -174,11 +174,22 @@ namespace com.fpnn.rtm
             if (networkType == NetworkType.NetworkType_Unreachable && (type == NetworkType.NetworkType_4G || type == NetworkType.NetworkType_Wifi))
             {//之前没有网络，现在有网络
                 Dictionary<RTMClient, Int64> clients = new Dictionary<RTMClient, Int64>();
+                List<RTMClient> activeClients = new List<RTMClient>();
                 lock (interLocker)
                 {
                     foreach (KeyValuePair<RTMClient, Int64> kvp in reloginClients)
                         clients.Add(kvp.Key, now);
 
+                    foreach (KeyValuePair<UInt64, RTMClient> kvp in rtmClients)
+                    {
+                        if (!clients.ContainsKey(kvp.Value))
+                        {
+                            activeClients.Add(kvp.Value);
+                            clients.Add(kvp.Value, now);
+                        }
+                    }
+                    foreach (RTMClient client in activeClients)
+                        client.Close(false);
                     reloginClients = clients;
                 }
             }
@@ -186,11 +197,14 @@ namespace com.fpnn.rtm
             {
                 lock (interLocker)
                 {
+                    List<RTMClient> clients = new List<RTMClient>();
                     foreach (KeyValuePair<UInt64, RTMClient> kvp in rtmClients)
                     {
-                        kvp.Value.Close();
+                        clients.Add(kvp.Value);
                         reloginClients.Add(kvp.Value, now);
                     }
+                    foreach (RTMClient client in clients)
+                        client.Close(false);
                 }
             }
             networkType = type;
@@ -335,6 +349,11 @@ namespace com.fpnn.rtm
 
         public static void Close()
         {
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
+            AudioRecorderNative.destroy();
+#endif
+            StatusMonitor.Instance.Close();
+
             lock (interLocker)
             {
                 if (!routineInited)

@@ -11,7 +11,7 @@ namespace com.fpnn.rtm
     {
         public interface IAudioRecorderListener
         {
-            void RecordStart();
+            void RecordStart(bool success);
             void RecordEnd();
             void OnRecord(RTMAudioData audioData);
             void OnVolumn(double db);
@@ -21,6 +21,7 @@ namespace com.fpnn.rtm
         static internal IAudioRecorderListener audioRecorderListener;
         static internal string language;
         static volatile bool cancelRecord = false;
+        static volatile bool recording = false;
 
         delegate void VolumnCallbackDelegate(float volumn);
         [MonoPInvokeCallback(typeof(VolumnCallbackDelegate))]
@@ -28,7 +29,6 @@ namespace com.fpnn.rtm
         {
             if (audioRecorderListener != null)
             {
-#if (UNITY_IOS || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
                 float minValue = -60;
                 float range = 60;
                 float outRange = 100;
@@ -36,23 +36,23 @@ namespace com.fpnn.rtm
                     volumn = minValue;
 
                 volumn = (volumn + range) / range * outRange;
-#endif
                 audioRecorderListener.OnVolumn(volumn);
             }
         }
 
-        delegate void StartRecordCallbackDelegate();
+        delegate void StartRecordCallbackDelegate(bool success);
         [MonoPInvokeCallback(typeof(StartRecordCallbackDelegate))]
-        private static void StartRecordCallback()
+        private static void StartRecordCallback(bool success)
         {
             if (audioRecorderListener != null)
-                audioRecorderListener.RecordStart();
+                audioRecorderListener.RecordStart(success);
         }
 
         delegate void StopRecordCallbackDelegate(IntPtr data, int length, long time);
         [MonoPInvokeCallback(typeof(StopRecordCallbackDelegate))]
         private static void StopRecordCallback(IntPtr data, int length, long time)
         {
+            recording = false;
             if (audioRecorderListener != null)
             {
                 audioRecorderListener.RecordEnd();
@@ -64,9 +64,13 @@ namespace com.fpnn.rtm
                 byte[] payload = new byte[length];
                 Marshal.Copy(data, payload, 0, length);
 
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
+                RTMAudioData audioData = new RTMAudioData(AudioConvert.ConvertToAmrwb(payload), language, time);
+#else
                 RTMAudioData audioData = new RTMAudioData(payload, language, time);
+#endif
                 audioRecorderListener.OnRecord(audioData);
-           }
+            }
         }
 
         delegate void PlayFinishCallbackDelegate();
@@ -90,7 +94,48 @@ namespace com.fpnn.rtm
         [DllImport("__Internal")]
         private static extern void stopPlay();
 #elif UNITY_ANDROID
+        class AudioRecordAndroidProxy : AndroidJavaProxy
+        {
+            public AudioRecordAndroidProxy() : base("com.NetForUnity.IAudioAction")
+            {
+            }
 
+            public void startRecord(bool success, string errorMsg)
+            {
+                if (AudioRecorderNative.audioRecorderListener != null)
+                    AudioRecorderNative.audioRecorderListener.RecordStart(success);
+            }
+
+            public void stopRecord()
+            {
+                recording = false;
+                if (AudioRecorderNative.audioRecorderListener != null)
+                    AudioRecorderNative.audioRecorderListener.RecordEnd();
+            }
+
+            public void broadFinish()
+            {
+                if (AudioRecorderNative.audioRecorderListener != null)
+                    AudioRecorderNative.audioRecorderListener.PlayEnd();
+            }
+
+            public void listenVolume(double db)
+            {
+                if (AudioRecorderNative.audioRecorderListener != null)
+                {
+                    float minValue = -60;
+                    float range = 60;
+                    float outRange = 100;
+                    if (db < minValue)
+                        db = minValue;
+
+                    db = (db + range) / range * outRange;
+
+                    AudioRecorderNative.audioRecorderListener.OnVolumn(db);
+                }
+            }
+        }
+        static AndroidJavaObject AudioRecord = null;
 #else
         [DllImport("RTMNative")]
         private static extern void startRecord(VolumnCallbackDelegate callback, StartRecordCallbackDelegate startCallback);
@@ -108,44 +153,16 @@ namespace com.fpnn.rtm
         private static extern void playWithPath(byte[] data, int length, PlayFinishCallbackDelegate callback);
 #endif
 
-#if UNITY_ANDROID
-        class AudioRecordAndroidProxy : AndroidJavaProxy
-        {
-            public AudioRecordAndroidProxy() : base("com.NetForUnity.IAudioAction")
-            {
-            }
-
-            public void startRecord(bool success, string errorMsg)
-            {
-                if (AudioRecorderNative.audioRecorderListener != null && success)
-                    AudioRecorderNative.audioRecorderListener.RecordStart();
-            }
-
-            public void stopRecord()
-            {
-                if (AudioRecorderNative.audioRecorderListener != null)
-                    AudioRecorderNative.audioRecorderListener.RecordEnd();
-            }
-
-            public void broadFinish()
-            {
-                if (AudioRecorderNative.audioRecorderListener != null)
-                    AudioRecorderNative.audioRecorderListener.PlayEnd();
-            }
-
-            public void listenVolume(double db)
-            {
-                if (AudioRecorderNative.audioRecorderListener != null)
-                    AudioRecorderNative.audioRecorderListener.OnVolumn(db);
-            }
-        }
-        static AndroidJavaObject AudioRecord = null;
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
+        [DllImport("RTMNative")]
+        internal static extern void destroy();
 #endif
+
         public void Init(string language, IAudioRecorderListener listener)
         {
-#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
-            Assert.IsTrue(false, "windows is not supported for now");
-#endif
+//#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
+            //Assert.IsTrue(false, "windows is not supported for now");
+//#endif
             AudioRecorderNative.language = language;
             audioRecorderListener = listener;
 #if UNITY_ANDROID
@@ -162,8 +179,14 @@ namespace com.fpnn.rtm
 #endif
         }
 
+        public bool IsRecording()
+        {
+            return recording;
+        }
+
         public void StartRecord()
         {
+            recording = true;
 #if UNITY_ANDROID
             if (AudioRecord != null)
                 AudioRecord.Call("startRecord");
@@ -205,6 +228,9 @@ namespace com.fpnn.rtm
 #if UNITY_ANDROID
             if (AudioRecord != null)
                 AudioRecord.Call("broadAudio", AudioConvert.ConvertToWav(data.Audio));
+#elif (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
+            byte[] wavBuffer = AudioConvert.ConvertToWav(data.Audio);
+            startPlay(wavBuffer, wavBuffer.Length, PlayFinishCallback);
 #else
             startPlay(data.Audio, data.Audio.Length, PlayFinishCallback);
 #endif

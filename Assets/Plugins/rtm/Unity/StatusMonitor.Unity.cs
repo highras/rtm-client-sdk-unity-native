@@ -21,6 +21,12 @@ namespace com.fpnn.rtm
     public class StatusMonitor : Singleton<StatusMonitor>
     {
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
+        [DllImport("RTMNative")]
+        private static extern void initNetworkStatusChecker(NetworkStatusDelegate callback);
+
+        [DllImport("RTMNative")]
+        private static extern void closeNetworkStatusChecker();
+
 #elif (UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
         [DllImport("RTMNative")]
         private static extern void initNetworkStatusChecker(NetworkStatusDelegate callback);
@@ -87,7 +93,6 @@ namespace com.fpnn.rtm
         [MonoPInvokeCallback(typeof(NetworkStatusDelegate))]
         static void NetworkStatusCallback(int networkStatus)
         {
-            //RTMControlCenter.NetworkReachableChanged(networkReachable);
             RTMControlCenter.NetworkChanged((NetworkType)networkStatus);
         }
 
@@ -107,6 +112,7 @@ namespace com.fpnn.rtm
         public void Init() 
         {
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
+            initNetworkStatusChecker(NetworkStatusCallback);
             //Assert.IsTrue(false, "windows is not supported for now");
 #elif (UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
             initNetworkStatusChecker(NetworkStatusCallback);
@@ -117,35 +123,43 @@ namespace com.fpnn.rtm
 #endif
         }
 
+        public void Close() 
+        {
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
-        public void Start()
-        {
-            StartCoroutine(PerSecondCoroutine());
-        }
-
-        public void OnDestroy()
-        {
-            StopAllCoroutines();
-        }
-
-        private IEnumerator PerSecondCoroutine()
-        {
-            yield return new WaitForSeconds(1.0f);
-
-            while (true)
-            {
-                CheckNetworkChange();
-
-                yield return new WaitForSeconds(1.0f);
-            }
-        }
-
-        private void CheckNetworkChange()
-        {
-            int networkStatus = (int)Application.internetReachability;
-            RTMControlCenter.NetworkChanged((NetworkType)networkStatus);
-        }
+            closeNetworkStatusChecker();
 #endif
+        }
+            
+
+//#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
+//        public void Start()
+//        {
+//            StartCoroutine(PerSecondCoroutine());
+//        }
+//
+//        public void OnDestroy()
+//        {
+//            StopAllCoroutines();
+//        }
+//
+//        private IEnumerator PerSecondCoroutine()
+//        {
+//            yield return new WaitForSeconds(1.0f);
+//
+//            while (true)
+//            {
+//                CheckNetworkChange();
+//
+//                yield return new WaitForSeconds(1.0f);
+//            }
+//        }
+//
+//        private void CheckNetworkChange()
+//        {
+//            int networkStatus = (int)Application.internetReachability;
+//            RTMControlCenter.NetworkChanged((NetworkType)networkStatus);
+//        }
+//#endif
 
         private void CheckInBackground()
         {
