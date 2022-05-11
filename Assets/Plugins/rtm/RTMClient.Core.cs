@@ -88,6 +88,7 @@ namespace com.fpnn.rtm
         //-------------[ Fields ]--------------------------//
         private object interLocker;
         private object rtcInterLocker;
+        private static object instanceLocker = new object();
         private readonly long projectId;
         private readonly long uid;
 
@@ -181,6 +182,72 @@ namespace com.fpnn.rtm
             }
         }
 
+        private void reset(RTMQuestProcessor serverPushProcessor, bool autoRelogin)
+        {
+            //status = ClientStatus.Closed;
+            //requireClose = false;
+            //ConnectTimeout = 0;
+            //QuestTimeout = 0;
+            //rtmGateConnectionId = 0;
+
+            RTMMasterProcessor processorCurrent = new RTMMasterProcessor();
+            processorCurrent.SetProcessor(serverPushProcessor);
+            processor = processorCurrent;
+            if (errorRecorder != null)
+                processor.SetErrorRecorder(errorRecorder);
+
+            lock (interLocker)
+            {
+                if (autoRelogin)
+                {
+                    autoReloginInfo = new AutoReloginInfo();
+                    regressiveStrategy = RTMConfig.globalRegressiveStrategy;
+                }
+                else
+                {
+                    autoReloginInfo = null;
+                    regressiveStrategy = null;
+                }
+            }
+
+            //authStatsInfo = null;
+            //syncConnectingEvent.Reset();
+        }
+
+        public static RTMClient getInstance(string endpoint, long projectId, long uid, RTMQuestProcessor serverPushProcessor, bool autoRelogin = true)
+        {
+            RTMClient client = null;
+            lock (instanceLocker)
+            {
+                client = RTMControlCenter.FetchClient(projectId, uid);
+                if (client != null)
+                {
+                    client.reset(serverPushProcessor, autoRelogin);
+                }
+                else
+                {
+                    client = new RTMClient(endpoint, projectId, uid, serverPushProcessor, autoRelogin);
+                    RTMControlCenter.AddClient(projectId, uid, client);
+                }
+            }
+            return client;
+        }
+
+        public static RTMClient getInstance(string endpoint, string rtcEndpoint, long projectId, long uid, RTMQuestProcessor serverPushProcessor, bool autoRelogin = true)
+        {
+            RTMClient client = RTMControlCenter.FetchClient(projectId, uid);
+            if (client != null)
+            {
+                client.reset(serverPushProcessor, autoRelogin);
+            }
+            else
+            {
+                client = new RTMClient(endpoint, rtcEndpoint, projectId, uid, serverPushProcessor, autoRelogin);
+                RTMControlCenter.AddClient(projectId, uid, client);
+            }
+            return client;
+        }
+
         //-------------[ Fack Fields ]--------------------------//
 
         //-- Obsolete in v.2.2.0
@@ -253,7 +320,7 @@ namespace com.fpnn.rtm
         }
 
         //private TCPClient GetRTCClient()
-        private UDPClient GetRTCClient()
+        internal UDPClient GetRTCClient()
         { 
             lock (interLocker)
             {
@@ -318,7 +385,6 @@ namespace com.fpnn.rtm
             });
 
             rtmGate.SetConnectionCloseDelegate((UInt64 connectionId, string endpoint, bool causedByError) => {
-
                 bool trigger = false;
                 bool isConnecting = false;
                 bool startRelogin = false;
@@ -330,7 +396,10 @@ namespace com.fpnn.rtm
                         if (status == ClientStatus.Connecting)
                             isConnecting = true;
                         else
+                        { 
                             status = ClientStatus.Closed;
+                            rtmGateConnectionId = 0;
+                        }
                     }
 
                     if (autoReloginInfo != null)
@@ -341,8 +410,9 @@ namespace com.fpnn.rtm
                 }
 
                 foreach (long roomId in rtcRoomList)
-                    RTCEngine.exitRTCRoom(this, roomId);
+                    RTCEngine.ExitRTCRoom(this, roomId);
                 rtcRoomList.Clear();
+                RTCEngine.CloseP2PRTC();
                 if (rtcGate != null)
                     rtcGate.Close();
 
@@ -590,36 +660,23 @@ namespace com.fpnn.rtm
 
                 if (autoReloginInfo != null)
                     autoReloginInfo.Login();
-            }
 
-            authStatsInfo = new AuthStatusInfo
-            {
-                authDelegates = new HashSet<AuthDelegate>() { callback },
-                remainedTimeout = timeout,
-            };
+                authStatsInfo = new AuthStatusInfo
+                {
+                    authDelegates = new HashSet<AuthDelegate>() { callback },
+                    remainedTimeout = timeout,
+                };
 
-            authStatsInfo.token = token;
-            authStatsInfo.attr = attr;
-            authStatsInfo.lang = lang;
-            authStatsInfo.lastActionMsecTimeStamp = ClientEngine.GetCurrentMilliseconds();
-
-            //if (rtmGate.IsConnected())
-            //{
-            //    if (authStatsInfo.remainedTimeout == 0)
-            //        authStatsInfo.remainedTimeout = RTMConfig.globalQuestTimeoutSeconds;
-
-            //    RTMControlCenter.RegisterSession(rtmGateConnectionId, this);
-            //    Auth(false);
-            //}
-            //else
-            {
+                authStatsInfo.token = token;
+                authStatsInfo.attr = attr;
+                authStatsInfo.lang = lang;
+                authStatsInfo.lastActionMsecTimeStamp = ClientEngine.GetCurrentMilliseconds();
                 if (authStatsInfo.remainedTimeout == 0)
                     authStatsInfo.remainedTimeout = ((ConnectTimeout == 0) ? RTMConfig.globalConnectTimeoutSeconds : ConnectTimeout)
                         + ((QuestTimeout == 0) ? RTMConfig.globalQuestTimeoutSeconds : QuestTimeout);
-
-                rtmGate.AsyncConnect();
-                //rtcGate.AsyncConnect();
             }
+
+            rtmGate.AsyncConnect();
 
             return true;
         }
@@ -826,8 +883,9 @@ namespace com.fpnn.rtm
 
             rtmGate.Close();
             foreach (long roomId in rtcRoomList)
-                RTCEngine.exitRTCRoom(this, roomId);
+                RTCEngine.ExitRTCRoom(this, roomId);
             rtcRoomList.Clear();
+            RTCEngine.CloseP2PRTC();
             if (rtcGate != null)
                 rtcGate.Close();
 

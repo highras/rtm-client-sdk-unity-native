@@ -56,5 +56,12 @@ namespace com.fpnn.rtm
         public const int RTM_EC_MESSAGE_NOT_FOUND = 200070;
 
         public const int RTM_EC_UNKNOWN_ERROR = 200999;
+
+        public const int RTC_EC_P2P_BUSY = 700030;
+        public const int RTC_EC_P2P_NOT_CLOSED = 700031;
+        public const int RTC_EC_P2P_NOT_REQUESTING = 700032;
+        public const int RTC_EC_P2P_NOT_TALKING = 700033;
+        public const int RTC_EC_IN_ROOM = 700034;
+        public const int RTC_EC_ON_P2P = 700035;
     }
 }

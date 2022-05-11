@@ -421,3 +421,321 @@ Return Values:
 	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
 
 	Others are the reason for calling failed.
+
+### Subscribe User Video Stream
+
+	//-- Async Method
+    public bool SubscribeVideo(DoneDelegate callback, long roomId, HashSet<long> uids, int timeout = 0);
+	
+	//-- Sync Method
+	public int SubscribeVideo(long roomId, HashSet<long> uids, int timeout = 0);
+
+Subscribe user video stream.
+
+Parameters:
+
++ `DoneDelegate callback`
+
+	public delegate void DoneDelegate(int errorCode);
+
+	Callabck for async method. Please refer [DoneDelegate](Delegates.md#DoneDelegate).
+
++ `long roomId`
+
+	RTC room ID.
+
++ `HashSet<long> uids`
+
+	Uids of the subscribe target.
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async calling is start.
+	* false: Start async calling is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
+
+	Others are the reason for calling failed.
+
+### Unsubscribe User Video Stream
+
+	//-- Async Method
+    public bool UnsubscribeVideo(DoneDelegate callback, long roomId, HashSet<long> uids, int timeout = 0);
+	
+	//-- Sync Method
+	public int UnsubscribeVideo(long roomId, HashSet<long> uids, int timeout = 0);
+
+Unsubscribe user video stream.
+
+Parameters:
+
++ `DoneDelegate callback`
+
+	public delegate void DoneDelegate(int errorCode);
+
+	Callabck for async method. Please refer [DoneDelegate](Delegates.md#DoneDelegate).
+
++ `long roomId`
+
+	RTC room ID.
+
++ `HashSet<long> uids`
+
+	Uids of the unsubscribe target.
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async calling is start.
+	* false: Start async calling is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
+
+	Others are the reason for calling failed.
+
+### Send P2P Request
+
+	//-- Async Method
+    public bool RequestP2PRTC(Action<long, int> callback, RTCP2PType type, long peerUID, int timeout = 0);
+	
+	//-- Sync Method
+	public int RequestP2PRTC(out long callID, RTCP2PType type, long peerUID, int timeout = 0);
+
+Send P2P request.
+
+Parameters:
+
++ `Action<long, int> callback`
+
+	Callabck for async method.  
+    1. `long` is the call id of the P2P request.
+	2. `int` is the error code indicating the calling is successful or the failed reasons.
+
++ `RTCP2PType type`
+
+	RTC P2P type. Please refer [RTCP2PType](Structures.md#RTCP2PType)
+
++ `long peerUID`
+
+	Uid of the peer.
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async calling is start.
+	* false: Start async calling is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
+
+	Others are the reason for calling failed.
+
+
+### Cancel P2P Request
+
+	//-- Async Method
+    public bool CancelP2PRTC(DoneDelegate callback, long callID, int timeout = 0);
+	
+	//-- Sync Method
+	public int CancelP2PRTC(long callID, int timeout = 0);
+
+Cancel P2P request.
+
+Parameters:
+
++ `DoneDelegate callback`
+
+	public delegate void DoneDelegate(int errorCode);
+
+	Callabck for async method. Please refer [DoneDelegate](Delegates.md#DoneDelegate).
+
++ `long callID`
+
+	Call ID of the P2P request.
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async calling is start.
+	* false: Start async calling is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
+
+	Others are the reason for calling failed.
+
+
+### Close P2P Request
+
+	//-- Async Method
+    public bool CloseP2PRTC(DoneDelegate callback, long callID, int timeout = 0);
+	
+	//-- Sync Method
+	public int CloseP2PRTC(long callID, int timeout = 0);
+
+Close P2P request.
+
+Parameters:
+
++ `DoneDelegate callback`
+
+	public delegate void DoneDelegate(int errorCode);
+
+	Callabck for async method. Please refer [DoneDelegate](Delegates.md#DoneDelegate).
+
++ `long callID`
+
+	Call ID of the P2P request.
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async calling is start.
+	* false: Start async calling is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
+
+	Others are the reason for calling failed.
+
+
+### Accept P2P Request
+
+	//-- Async Method
+    public bool AcceptP2PRTC(DoneDelegate callback, long peerUid, RTCP2PType type, long callID, int timeout = 0);
+	
+	//-- Sync Method
+	public int AcceptP2PRTC(long peerUid, RTCP2PType type, long callID, int timeout = 0);
+
+Accept P2P request.
+
+Parameters:
+
++ `DoneDelegate callback`
+
+	public delegate void DoneDelegate(int errorCode);
+
+	Callabck for async method. Please refer [DoneDelegate](Delegates.md#DoneDelegate).
+
++ `long peerUid`
+
+	Uid of the peer.
+
++ `RTCP2PType type`
+
+	RTC P2P type. Please refer [RTCP2PType](Structures.md#RTCP2PType)
+
++ `long callID`
+
+	Call ID of the P2P request.
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async calling is start.
+	* false: Start async calling is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
+
+	Others are the reason for calling failed.
+
+
+### Refuse P2P Request
+
+	//-- Async Method
+    public bool RefuseP2PRTC(DoneDelegate callback, long callID, int timeout = 0);
+	
+	//-- Sync Method
+	public int RefuseP2PRTC(long callID, int timeout = 0);
+
+Refuse P2P request.
+
+Parameters:
+
++ `DoneDelegate callback`
+
+	public delegate void DoneDelegate(int errorCode);
+
+	Callabck for async method. Please refer [DoneDelegate](Delegates.md#DoneDelegate).
+
++ `long callID`
+
+	Call ID of the P2P request.
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async calling is start.
+	* false: Start async calling is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
+
+	Others are the reason for calling failed.

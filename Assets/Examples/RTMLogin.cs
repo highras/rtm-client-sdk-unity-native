@@ -1,6 +1,8 @@
 ﻿using System.Threading;
 using UnityEngine;
 using com.fpnn.rtm;
+using com.fpnn;
+using System.Collections.Generic;
 
 class Login : Main.ITestCase
 {
@@ -8,6 +10,7 @@ class Login : Main.ITestCase
     {
         SyncLoginDemo(endpoint, pid, uid, token);
         AsyncLoginDemo(endpoint, pid, uid, token);
+        MultiThreadLogin(endpoint, pid, uid, token);
 
         Debug.Log("============== Demo completed ================");
     }
@@ -16,7 +19,7 @@ class Login : Main.ITestCase
 
     static void SyncLoginDemo(string rtmEndpoint, long pid, long uid, string token)
     {
-        RTMClient client = new RTMClient(rtmEndpoint, pid, uid, new example.common.RTMExampleQuestProcessor());
+        RTMClient client = RTMClient.getInstance(rtmEndpoint, pid, uid, new example.common.RTMExampleQuestProcessor());
 
         int errorCode = client.Login(out bool ok, token);
         Debug.Log("Login Result: OK: " + ok + ", code: " + errorCode);
@@ -30,7 +33,7 @@ class Login : Main.ITestCase
 
     static void AsyncLoginDemo(string rtmEndpoint, long pid, long uid, string token)
     {
-        RTMClient client = new RTMClient(rtmEndpoint, pid, uid, new example.common.RTMExampleQuestProcessor());
+        RTMClient client = RTMClient.getInstance(rtmEndpoint, pid, uid, new example.common.RTMExampleQuestProcessor());
         bool status = client.Login((long pid_, long uid_, bool authStatus, int errorCode) => {
             Debug.Log("Async login " + authStatus + ". pid " + pid_ + ", uid " + uid_ + ", code : " + errorCode);
         }, token);
@@ -46,5 +49,47 @@ class Login : Main.ITestCase
         client.Close();
         Debug.Log("closed");
         Thread.Sleep(1500);
+    }
+    static List<Thread> threads = new List<Thread>();
+
+    static void MultiThreadLogin(string rtmEndpoint, long pid, long uid, string token)
+    {
+        int threadCount = 2;
+        for (int i = 0; i < threadCount; ++i)
+        {
+            threads.Add(new Thread(() =>
+            {
+                System.Random random = new System.Random();
+                for (int j = 0; j < 100; ++j)
+                {
+                    Debug.Log(j);
+                    RTMClient client = RTMClient.getInstance(rtmEndpoint, pid, uid, new example.common.RTMExampleQuestProcessor());
+                    bool status = client.Login((long pid_, long uid_, bool authStatus, int errorCode) =>
+                    {
+                        Debug.Log("Async login " + authStatus + ". pid " + pid_ + ", uid " + uid_ + ", code : " + errorCode);
+                        int k = random.Next(10);
+                        if (k == 0)
+                        {
+                            return;
+                        }
+                        else
+                        {
+                            Thread.Sleep(random.Next(0,500));
+                            client.Close(false);
+                        }
+
+                    }, token);
+                    if (!status)
+                    {
+                        Debug.Log("Async login starting failed.");
+                        continue;
+                    }
+                    Thread.Sleep(random.Next(0,1000));
+                }
+            }));
+            threads[i].Start();
+        }
+        for (int i = 0; i < threadCount; ++i)
+            threads[i].Join();
     }
 }

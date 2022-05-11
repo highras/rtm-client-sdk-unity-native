@@ -209,3 +209,13 @@ VideoRoom for both voice and video conmunication.(not avaliable for now)
     }
 
 Using as the type of the rtc administrator command.
+
+### RTCP2PType
+    public enum RTCP2PType : byte
+    {
+        Invalid = 0,
+        Voice = 1,
+        Video = 2,
+    }
+
+Using as the type of the p2p rtc request.

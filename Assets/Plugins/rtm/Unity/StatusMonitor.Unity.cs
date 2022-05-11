@@ -169,7 +169,8 @@ namespace com.fpnn.rtm
                 {
                     _isBackground = true;
 #if UNITY_ANDROID
-                    RTCEngine.Pause();
+                    RTCEngine.setBackground(true);
+                    //RTCEngine.Pause();
 #endif
                 }
             }
@@ -179,7 +180,8 @@ namespace com.fpnn.rtm
                 {
                     _isBackground = false;
 #if UNITY_ANDROID
-                    RTCEngine.Resume();
+                    RTCEngine.setBackground(false);
+                    //RTCEngine.Resume();
 #endif
                 }
             }

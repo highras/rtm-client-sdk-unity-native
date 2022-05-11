@@ -11,8 +11,9 @@ namespace com.fpnn.rtm
 
     public class RTMConfig
     {
-        public static readonly string SDKVersion = "1.0.7";
+        public static readonly string SDKVersion = "1.1.0";
         public static readonly string InterfaceVersion = "2.7.0";
+        public static readonly string RTMGameObjectName = "RTM_GAMEOBJECT";
 
         internal static int lostConnectionAfterLastPingInSeconds = 60;
         internal static int globalConnectTimeoutSeconds = 30;
@@ -109,6 +110,27 @@ namespace com.fpnn.rtm
         InvalidRoom = 0,
         VoiceRoom = 1,
         VideoRoom = 2,
+    }
+
+    public enum RTCP2PType : byte
+    {
+        Invalid = 0,
+        Voice = 1,
+        Video = 2,
+    }
+
+    public enum RTCP2PEvent : byte
+    {
+        Cancel = 1,     //对端取消p2p请求
+        Close = 2,      //对端挂断
+        Accpet = 3,    //对端已经接受p2p请求
+        Refuse = 4,     //对端拒绝p2p请求
+        NoAnswer = 5,   //对端无人接听
+    }
+
+    public enum RTCVideoCaptureLevel : byte 
+    {
+        Default = 1,
     }
 
     public enum RTCAdminCommand: int

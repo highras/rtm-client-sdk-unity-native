@@ -51,6 +51,9 @@
         public virtual void PushKickOutRTCRoom(long fromUid, long roomId) { }
         public virtual void PushPullIntoRTCRoom(long roomId, string token) { }
         public virtual void PushAdminCommand(RTCAdminCommand command, HashSet<long> uids) { }
+        public virtual void PushP2PRTCRequest(long callId, long peerUid, RTCP2PType type) { }
+        public virtual void PushP2PRTCEvent(long callId, long peerUid, RTCP2PType type, RTCP2PEvent p2pEvent) { }
+
     }
 
 ### Session Close Event
@@ -111,3 +114,10 @@ A user is pulled into the RTC room.
 ##### Administrator Command
 
 Notification of the administrator command.
+
+##### P2P RTC Request
+
+Notification of the P2P request.
+##### P2P RTC Event
+
+Notification of the P2P request event.

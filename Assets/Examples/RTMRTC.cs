@@ -24,18 +24,18 @@ public class RTC : Main.ITestCase
             Debug.Log("CreateRTCRoom roomId = " + roomId + ", errorCode = " + errorCode);
             if (errorCode == com.fpnn.ErrorCode.FPNN_EC_OK)
             {
-                RTCEngine.setActiveRoomId(roomId);
-                client.OpenMicroPhone();
-                client.OpenVoicePlay();
+                RTCEngine.SetActiveRoomId(roomId);
+                RTCEngine.OpenMicroPhone();
+                RTCEngine.OpenVoicePlay();
             }
             else
             {
                 client.EnterRTCRoom((long tmpRoomId, RTCRoomType roomType, int tmpErrorCode) =>
                 {
                     Debug.Log("EnterRTCRoom roomId = " + tmpRoomId + ", errorCode = " + tmpErrorCode);
-                    RTCEngine.setActiveRoomId(tmpRoomId);
-                    client.OpenVoicePlay();
-                    client.OpenMicroPhone();
+                    RTCEngine.SetActiveRoomId(tmpRoomId);
+                    RTCEngine.OpenVoicePlay();
+                    RTCEngine.OpenMicroPhone();
                 }, 666);
             }
         }, 666, RTCRoomType.VoiceRoom);
@@ -85,7 +85,7 @@ public class RTC : Main.ITestCase
 
     static RTMClient LoginRTM(string rtmEndpoint, long pid, long uid, string token)
     {
-        RTMClient client = new RTMClient(rtmEndpoint, "rtc-nx-front.ilivedata.com:13702", pid, uid, new example.common.RTMExampleQuestProcessor());
+        RTMClient client = RTMClient.getInstance(rtmEndpoint, "161.189.171.91:13702", pid, uid, new example.common.RTMExampleQuestProcessor());
 
         int errorCode = client.Login(out bool ok, token);
         if (ok)
