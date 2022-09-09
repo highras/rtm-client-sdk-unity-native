@@ -507,6 +507,7 @@ namespace com.fpnn.rtm
             long currUid;
             bool isRelogin = false;
             UInt64 reservedRtmGateConnectionId = 0;
+            bool needClose = false;
 
             lock (interLocker)
             {
@@ -522,6 +523,7 @@ namespace com.fpnn.rtm
                     status = ClientStatus.Closed;
                     reservedRtmGateConnectionId = rtmGateConnectionId;
                     rtmGateConnectionId = 0;
+                    needClose = true;
                     //-- Reserving rtmGate without closing for quick relogin.
                 }
 
@@ -543,6 +545,9 @@ namespace com.fpnn.rtm
                 currInfo = authStatsInfo;
                 authStatsInfo = null;
                 currUid = uid;
+
+                if (needClose)
+                    rtmGate.Close();
 
                 syncConnectingEvent.Set();
             }

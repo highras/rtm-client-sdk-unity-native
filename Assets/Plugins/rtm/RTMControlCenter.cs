@@ -327,12 +327,12 @@ namespace com.fpnn.rtm
 #if UNITY_2017_1_OR_NEWER
             StatusMonitor.Instance.Init();
 #endif
+            InitCallbackQueue();
 
             if (config == null)
                 return;
 
             RTMConfig.Config(config);
-            InitCallbackQueue();
         }
 
         private static void InitCallbackQueue()
