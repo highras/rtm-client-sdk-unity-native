@@ -9,6 +9,7 @@ using UnityEngine.UI;
 public class P2PMode : MonoBehaviour
 {
     InputField UID_InputField;
+    InputField Token_InputField;
     InputField Target_InputField;
     Text Push_Text;
     Toggle Microphone_Toggle;
@@ -33,6 +34,7 @@ public class P2PMode : MonoBehaviour
     void Start()
     {
         UID_InputField = GameObject.Find("UID_InputField").GetComponent<InputField>();
+        Token_InputField = GameObject.Find("Token_InputField").GetComponent<InputField>();
         Target_InputField = GameObject.Find("Target_InputField").GetComponent<InputField>();
         Push_Text = GameObject.Find("Push_Image/Text").GetComponent<Text>();
         Microphone_Toggle = GameObject.Find("Microphone_Toggle").GetComponent<Toggle>();
@@ -62,7 +64,9 @@ public class P2PMode : MonoBehaviour
     public void Login_Button_OnClick()
     {
         long uid = Convert.ToInt64(UID_InputField.text);
-        string token = HomePage.GetToken(uid);
+        string token = Token_InputField.text;
+        if (token == "")
+            token = HomePage.GetToken(uid);
         example.common.RTMRTCQuestProcessor processor = new example.common.RTMRTCQuestProcessor();
         processor.PushP2PRTCRequestCallback = (long callId, long peerUid, RTCP2PType type) => { 
             ReceiveRequest(callId, peerUid, type); 
@@ -70,23 +74,25 @@ public class P2PMode : MonoBehaviour
         processor.PushP2PRTCEventCallback = (long callId, long peerUid, RTCP2PType type, RTCP2PEvent p2pEvent) => {
             ReceiveEvent(callId, peerUid, type, p2pEvent); 
         };
-        HomePage.client = RTMClient.getInstance("161.189.171.91:13321", "161.189.171.91:13702", HomePage.projectId, uid, processor);
+        HomePage.client = RTMClient.getInstance(HomePage.rtmEndpoint, HomePage.rtcEndpoint, HomePage.projectId, uid, processor);
 
         bool status = HomePage.client.Login((long pid_, long uid_, bool ok, int errorCode) =>
         {
-            Debug.Log("Async login " + ok + ". pid " + pid_ + ", uid " + uid_ + ", code : " + errorCode);
-            if (ok)
+            RTMControlCenter.callbackQueue.PostAction(() => 
             {
-                RTCEngine.ActiveRTCClient(HomePage.client);
-                AddLog(UID_InputField.text + " login succeed.");
-                Debug.Log("RTM login success.");
-            }
-            else
-            {
-                AddLog(UID_InputField.text + " login failed.");
-                Debug.Log("RTM login failed, error code: " + errorCode);
-            }
-
+                Debug.Log("Async login " + ok + ". pid " + pid_ + ", uid " + uid_ + ", code : " + errorCode);
+                if (ok)
+                {
+                    RTCEngine.ActiveRTCClient(HomePage.client);
+                    AddLog(UID_InputField.text + " login succeed.");
+                    Debug.Log("RTM login success.");
+                }
+                else
+                {
+                    AddLog(UID_InputField.text + " login failed.");
+                    Debug.Log("RTM login failed, error code: " + errorCode);
+                }
+            });
         }, token);
         if (!status)
         {

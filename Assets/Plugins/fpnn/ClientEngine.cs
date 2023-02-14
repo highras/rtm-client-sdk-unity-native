@@ -169,6 +169,8 @@ namespace com.fpnn
             ClientManager.Stop();
             lock (interLocker)
             {
+                if (inited == false)
+                    return;
                 if (stopped)
                     return;
 

@@ -38,7 +38,7 @@ namespace com.fpnn.rtm
                 });
                 return;
             }
-            createRTCRoom((long rid, string token, int errorCode) =>
+            bool status = createRTCRoom((long rid, string token, int errorCode) =>
             {
                 if (errorCode != fpnn.ErrorCode.FPNN_EC_OK)
                 {
@@ -46,7 +46,7 @@ namespace com.fpnn.rtm
                     return;
                 }
 
-                enterRTCRoom((bool microphone, HashSet<long> uids, HashSet<long> administrators, long owner, int errorCode2) => {
+                status = enterRTCRoom((bool microphone, HashSet<long> uids, HashSet<long> administrators, long owner, int errorCode2) => {
                     if (errorCode != fpnn.ErrorCode.FPNN_EC_OK)
                     {
                         callback(0, errorCode2);
@@ -63,7 +63,17 @@ namespace com.fpnn.rtm
                     }
                     callback(rid, fpnn.ErrorCode.FPNN_EC_OK);
                 }, (int)projectId, uid, roomId, token, timeout);
+                if (!status && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
             }, roomId, roomType, timeout);
+            if (!status && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
         }
 
         public int CreateRTCRoom(long roomId, RTCRoomType roomType, int timeout = 0)
@@ -90,7 +100,7 @@ namespace com.fpnn.rtm
             return errorCode2;
         }
 
-        public void EnterRTCRoom(Action<long, RTCRoomType, int> callback, long roomId, int timeout = 0)
+        public void EnterRTCRoom(Action<long, RTCRoomType, int> callback, long roomId, string password = null, string nickName = null,int timeout = 0)
         {
             if (RTCEngine.GetP2PCallId() != -1)
             {
@@ -131,7 +141,7 @@ namespace com.fpnn.rtm
                     {
                         callback(0, RTCRoomType.InvalidRoom, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
                     });
-            }, roomId, timeout);
+            }, roomId, password, timeout);
             if (!status && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
                 ClientEngine.RunTask(() =>
                 {
@@ -167,7 +177,7 @@ namespace com.fpnn.rtm
 
         public void ExitRTCRoom(Action<int> callback, long roomId, int timeout = 0)
         {
-            exitRTCRoom((int errorCode) =>
+            bool status = exitRTCRoom((int errorCode) =>
             {
                 if (errorCode != fpnn.ErrorCode.FPNN_EC_OK)
                 {
@@ -181,6 +191,11 @@ namespace com.fpnn.rtm
                 }
                 callback(errorCode);
             }, roomId, timeout);
+            if (!status && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
         }
 
         public int ExitRTCRoom(long roomId, int timeout = 0)
@@ -255,7 +270,7 @@ namespace com.fpnn.rtm
 
             Quest quest = new Quest("createRTCRoom");
             quest.Param("rid", roomId);
-            quest.Param("type", (Int32)roomType); ;
+            quest.Param("type", (Int32)roomType);
             quest.Param("enableRecord", 0);
 
             Answer answer = client.SendQuest(quest, timeout);
@@ -275,7 +290,7 @@ namespace com.fpnn.rtm
         }
 
         //===========================[ Enter RTC Room ]=========================//
-        public bool enterRTCRoom(Action<string, RTCRoomType, int> callback, long roomId, int timeout = 0)
+        public bool enterRTCRoom(Action<string, RTCRoomType, int> callback, long roomId, string password = null, int timeout = 0)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -291,6 +306,8 @@ namespace com.fpnn.rtm
 
             Quest quest = new Quest("enterRTCRoom");
             quest.Param("rid", roomId);
+            if (password != null)
+                quest.Param("password", password);
 
             bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
 

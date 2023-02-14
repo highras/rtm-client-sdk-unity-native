@@ -59,7 +59,7 @@ namespace example.common
                 Debug.Log($"Kickout from room {roomId}");
         }
 
-        public override void PushEnterRTCRoom(long roomId, long uid, long mtime)
+        public override void PushEnterRTCRoom(long roomId, long uid, long mtime, string nickName)
         {
             lock (this)
             {

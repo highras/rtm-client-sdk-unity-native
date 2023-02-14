@@ -33,7 +33,7 @@ namespace com.fpnn.rtm
                 {
                     RTCEngine.UpdateRequestTime();
                     RTCEngine.SetP2PInfo(callID, peerUID, RTCP2P_STATE.REQUESTING);
-                    RTCEngine.SetP2PRequestClient(this);
+                    //RTCEngine.SetP2PRequestClient(this);
                 }
                 callback(callID, errorCode);
             }, type, peerUID, timeout);
@@ -55,7 +55,7 @@ namespace com.fpnn.rtm
             {
                 RTCEngine.UpdateRequestTime();
                 RTCEngine.SetP2PInfo(callID, peerUID, RTCP2P_STATE.REQUESTING);
-                RTCEngine.SetP2PRequestClient(this);
+                //RTCEngine.SetP2PRequestClient(this);
             }
             return errorCode;
         }
@@ -577,7 +577,7 @@ namespace com.fpnn.rtm
                             RTCEngine.InitVideo(uid);
                         RTCEngine.ClearP2PRequestTime();
                         RTCEngine.SetP2PInfo(callId, peerUid, RTCP2P_STATE.TALKING);
-                        RTCEngine.ClearP2PRequestClient();
+                        //RTCEngine.ClearP2PRequestClient();
                     }
                     else
                     {

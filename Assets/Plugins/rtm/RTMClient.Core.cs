@@ -404,7 +404,7 @@ namespace com.fpnn.rtm
 
                     if (autoReloginInfo != null)
                     {
-                        startRelogin = (autoReloginInfo.disabled == false && autoReloginInfo.canRelogin);
+                        startRelogin = CheckRelogin();
                         autoReloginInfo.lastErrorCode = (causedByError ? fpnn.ErrorCode.FPNN_EC_CORE_CONNECTION_CLOSED : fpnn.ErrorCode.FPNN_EC_OK);
                     }
                 }
@@ -425,12 +425,15 @@ namespace com.fpnn.rtm
                         if (startRelogin)
                             StartRelogin();
                         else
-                        {
                             processor.SessionClosed(causedByError ? fpnn.ErrorCode.FPNN_EC_CORE_UNKNOWN_ERROR : fpnn.ErrorCode.FPNN_EC_OK);
-                        }
                     }
                 }
             });
+        }
+
+        public bool CheckRelogin()
+        {
+            return autoReloginInfo.disabled == false && autoReloginInfo.canRelogin;
         }
 
         private void BuildRTCGateClient(string originalEndpoint)
@@ -866,15 +869,15 @@ namespace com.fpnn.rtm
 
             lock (interLocker)
             {
+                if (disableRelogin && autoReloginInfo != null)
+                    autoReloginInfo.Disable();
+
                 if (status == ClientStatus.Closed)
                 {
                     return;
                 }
 
                 requireClose = true;
-
-                if (disableRelogin && autoReloginInfo != null)
-                    autoReloginInfo.Disable();
 
                 if (status == ClientStatus.Connecting)
                 {

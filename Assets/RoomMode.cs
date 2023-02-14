@@ -9,6 +9,7 @@ using UnityEngine.UI;
 public class RoomMode : MonoBehaviour
 {
     InputField UID_InputField;
+    InputField Token_InputField;
     InputField RoomID_InputField;
     Text ActiveRoom_Text;
     Dropdown ActiveRoom_Dropdown;
@@ -35,6 +36,7 @@ public class RoomMode : MonoBehaviour
     void Start()
     {
         UID_InputField = GameObject.Find("UID_InputField").GetComponent<InputField>();
+        Token_InputField = GameObject.Find("Token_InputField").GetComponent<InputField>();
         RoomID_InputField = GameObject.Find("RoomID_InputField").GetComponent<InputField>();
         ActiveRoom_Text = GameObject.Find("ActiveRoom_Image/Text").GetComponent<Text>();
         ActiveRoom_Dropdown = GameObject.Find("ActiveRoom_Dropdown").GetComponent<Dropdown>();
@@ -91,9 +93,11 @@ public class RoomMode : MonoBehaviour
     public void Login_Button_OnClick()
     {
         long uid = Convert.ToInt64(UID_InputField.text);
-        string token = HomePage.GetToken(uid);
+        string token = Token_InputField.text;
+        if (token == "")
+            token = HomePage.GetToken(uid);
         example.common.RTMRTCQuestProcessor processor = new example.common.RTMRTCQuestProcessor();
-        processor.PushEnterRTCRoomCallback = (long roomId_, long uid_, long mtime_) => {
+        processor.PushEnterRTCRoomCallback = (long roomId_, long uid_, long mtime_, string nickName) => {
             Debug.Log("pushEnterRTCRoomCallback");
             Update_Subscribe_Dropdown(); 
         };
@@ -115,51 +119,56 @@ public class RoomMode : MonoBehaviour
                 return;
             if (activeRoomId == 0)
                 return;
-            HomePage.client.EnterRTCRoom((long room, RTCRoomType type, int errorCode2) =>
+            HomePage.client.EnterRTCRoom((long room, RTCRoomType type, int errorCode) =>
             {
-                Debug.Log("EnterRTCRoom errorCode=" + errorCode2);
-                if (errorCode == 0)
+                Debug.Log("EnterRTCRoom errorCode=" + errorCode);
+                RTMControlCenter.callbackQueue.PostAction(() =>
                 {
-                    AddLog("Enter room " + activeRoomId);
-                    Update_AcitveRoom_Dropdown();
-                }
-                else
-                {
-                    HomePage.client.CreateRTCRoom((long room2, int errorCode3) => {
-                        Debug.Log("CreateRTCRoom errorCode=" + errorCode3);
-                        if (errorCode3 == 0)
+                    if (errorCode == 0)
+                    {
+                        AddLog("Enter room " + activeRoomId);
+                        Update_AcitveRoom_Dropdown();
+                    }
+                    else
+                    {
+                        HomePage.client.CreateRTCRoom((long room2, int errorCode2) =>
                         {
-                            AddLog("Enter room " + activeRoomId);
-                            Update_AcitveRoom_Dropdown();
-                        }
-                        else
-                        {
+                            Debug.Log("CreateRTCRoom errorCode=" + errorCode2);
+                            if (errorCode == 0)
+                            {
+                                AddLog("Enter room " + activeRoomId);
+                                Update_AcitveRoom_Dropdown();
+                            }
+                            else
+                            {
 
-                        }
-                    }, activeRoomId, RTCRoomType.VideoRoom);
-                }
+                            }
+                        }, activeRoomId, RTCRoomType.VideoRoom);
+                    }
+                });
             }, activeRoomId);
-
         };
 
-        HomePage.client = RTMClient.getInstance("161.189.171.91:13321", "161.189.171.91:13702", HomePage.projectId, uid, processor);
+        HomePage.client = RTMClient.getInstance(HomePage.rtmEndpoint, HomePage.rtcEndpoint, HomePage.projectId, uid, processor);
 
         bool status = HomePage.client.Login((long pid_, long uid_, bool ok, int errorCode) =>
         {
-            Debug.Log("Async login " + ok + ". pid " + pid_ + ", uid " + uid_ + ", code : " + errorCode);
-            if (ok)
+            RTMControlCenter.callbackQueue.PostAction(() =>
             {
-                RTCEngine.ActiveRTCClient(HomePage.client);
-                Debug.Log("RTM login success.");
-                AddLog("User " + UID_InputField.text + " login succeed.");
-            }
-            else
-            {
-                //Tips_Text.text = UID_InputField.text + " 登陆失败";
-                Debug.Log("RTM login failed, error code: " + errorCode);
-                AddLog("User " + UID_InputField.text + "login failed.");
-            }
-
+                Debug.Log("Async login " + ok + ". pid " + pid_ + ", uid " + uid_ + ", code : " + errorCode);
+                if (ok)
+                {
+                    RTCEngine.ActiveRTCClient(HomePage.client);
+                    Debug.Log("RTM login success.");
+                    AddLog("User " + UID_InputField.text + " login succeed.");
+                }
+                else
+                {
+                    //Tips_Text.text = UID_InputField.text + " 登陆失败";
+                    Debug.Log("RTM login failed, error code: " + errorCode);
+                    AddLog("User " + UID_InputField.text + "login failed.");
+                }
+            });
         }, token);
         if (!status)
         {
@@ -176,32 +185,38 @@ public class RoomMode : MonoBehaviour
         long roomID = Convert.ToInt64(RoomID_InputField.text);
         HomePage.client.EnterRTCRoom((long room, RTCRoomType type, int errorCode) =>
         {
-            Debug.Log("EnterRTCRoom errorCode=" + errorCode);
-            if (errorCode == 0)
+            RTMControlCenter.callbackQueue.PostAction(() =>
             {
-                //Tips_Text.text = "加入房间" + RoomID_InputField.text + "成功";
-                AddLog("Enter room " + RoomID_InputField.text);
-                Update_AcitveRoom_Dropdown();
-            }
-            else
-            {
-                HomePage.client.CreateRTCRoom((long room2, int errorCode2) => { 
-                    Debug.Log("CreateRTCRoom errorCode=" + errorCode2);
-                    if (errorCode2 == 0)
+                Debug.Log("EnterRTCRoom errorCode=" + errorCode);
+                if (errorCode == 0)
+                {
+                    //Tips_Text.text = "加入房间" + RoomID_InputField.text + "成功";
+                    AddLog("Enter room " + RoomID_InputField.text);
+                    Update_AcitveRoom_Dropdown();
+                }
+                else
+                {
+                    HomePage.client.CreateRTCRoom((long room2, int errorCode2) =>
                     {
-                        AddLog("Enter room " + RoomID_InputField.text);
-                        Update_AcitveRoom_Dropdown();
-                    }
-                    else
-                    {
-                        
-                    }
-                }, roomID, RTCRoomType.VideoRoom);
-                //Tips_Text.text = "加入房间" + RoomID_InputField.text + "失败";
-            }
 
+                        RTMControlCenter.callbackQueue.PostAction(() =>
+                        {
+                            Debug.Log("CreateRTCRoom errorCode=" + errorCode2);
+                            if (errorCode2 == 0)
+                            {
+                                AddLog("Enter room " + RoomID_InputField.text);
+                                Update_AcitveRoom_Dropdown();
+                            }
+                            else
+                            {
+
+                            }
+                        });
+                    }, roomID, RTCRoomType.VideoRoom);
+                    //Tips_Text.text = "加入房间" + RoomID_InputField.text + "失败";
+                }
+            });
         }, roomID);
-
     }
 
     public void ExitRoom_Button_OnClick()
@@ -210,16 +225,19 @@ public class RoomMode : MonoBehaviour
             return;
         long roomID = Convert.ToInt64(RoomID_InputField.text);
         HomePage.client.ExitRTCRoom((int errorCode) => {
-            if (errorCode == 0)
+            RTMControlCenter.callbackQueue.PostAction(() =>
             {
-                Microphone_Toggle.isOn = false;
-                VoicePlay_Toggle.isOn = false;
-                Update_AcitveRoom_Dropdown();
-                AddLog("Exit room " + RoomID_InputField.text);
-                if (roomID == activeRoomId)
-                    activeRoomId = 0;
-            }
-         }, roomID);
+                if (errorCode == 0)
+                {
+                    Microphone_Toggle.isOn = false;
+                    VoicePlay_Toggle.isOn = false;
+                    Update_AcitveRoom_Dropdown();
+                    AddLog("Exit room " + RoomID_InputField.text);
+                    if (roomID == activeRoomId)
+                        activeRoomId = 0;
+                }
+            });
+        }, roomID);
     }
 
     void Update_AcitveRoom_Dropdown()
@@ -389,17 +407,20 @@ public class RoomMode : MonoBehaviour
             AddLog("Can't subscribe more members.");
             return;
         }
-        HomePage.client.SubscribeVideo((int errorCode) => { 
-            if (errorCode == 0)
+        HomePage.client.SubscribeVideo((int errorCode) => {
+            RTMControlCenter.callbackQueue.PostAction(() =>
             {
-                EnableVideoSurface(memberId);
-                AddLog("Subscribe " + memberId + " succeed.");
-                Debug.Log("Subscribe " + memberId + " succeed.");
-            }
-            else
-            {
-                Debug.Log("Subscribe " + memberId + " failed.");
-            }
+                if (errorCode == 0)
+                {
+                    EnableVideoSurface(memberId);
+                    AddLog("Subscribe " + memberId + " succeed.");
+                    Debug.Log("Subscribe " + memberId + " succeed.");
+                }
+                else
+                {
+                    Debug.Log("Subscribe " + memberId + " failed.");
+                }
+            });
         }, activeRoomId, new HashSet<long> { memberId });
     }
 
@@ -408,17 +429,20 @@ public class RoomMode : MonoBehaviour
         if (Subscribe_Dropdown.value < 0)
             return;
         long memberId = Convert.ToInt64(Subscribe_Dropdown.options[Subscribe_Dropdown.value].text);
-        HomePage.client.UnsubscribeVideo((int errorCode) => { 
-            if (errorCode == 0)
+        HomePage.client.UnsubscribeVideo((int errorCode) => {
+            RTMControlCenter.callbackQueue.PostAction(() =>
             {
-                DisableVideoSurface(memberId);
-                AddLog("Unsubscribe " + memberId + " succeed.");
-                Debug.Log("Unsubscribe " + memberId + " succeed.");
-            }
-            else
-            {
-                Debug.Log("Unsubscribe " + memberId + " failed.");
-            }
+                if (errorCode == 0)
+                {
+                    DisableVideoSurface(memberId);
+                    AddLog("Unsubscribe " + memberId + " succeed.");
+                    Debug.Log("Unsubscribe " + memberId + " succeed.");
+                }
+                else
+                {
+                    Debug.Log("Unsubscribe " + memberId + " failed.");
+                }
+            });
         }, activeRoomId, new HashSet<long> { memberId });
     }
 

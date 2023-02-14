@@ -93,6 +93,15 @@ namespace com.fpnn.rtm
             return GetGroupMessage(out result, groupId, desc, count, beginMsec, endMsec, lastId, chatMTypes, timeout);
         }
 
+        public bool GetGroupChatByMessageId(HistoryMessageDelegate callback, long groupId, bool desc, int count, long messageId, long beginMsec = 0, long endMsec = 0, int timeout = 0)
+        {
+            return GetGroupMessageByMessageId(callback, groupId, desc, count, messageId, beginMsec, endMsec, chatMTypes, timeout);
+        }
+
+        public int GetGroupChatByMessageId(out HistoryMessageResult result, long groupId, bool desc, int count, long messageId, long beginMsec = 0, long endMsec = 0, int timeout = 0)
+        {
+            return GetGroupMessageByMessageId(out result, groupId, desc, count, messageId, beginMsec, endMsec, chatMTypes, timeout);
+        }
 
         public bool GetRoomChat(HistoryMessageDelegate callback, long roomId, bool desc, int count, long beginMsec = 0, long endMsec = 0, long lastId = 0, int timeout = 0)
         {
@@ -104,6 +113,15 @@ namespace com.fpnn.rtm
             return GetRoomMessage(out result, roomId, desc, count, beginMsec, endMsec, lastId, chatMTypes, timeout);
         }
 
+        public bool GetRoomChatByMessageId(HistoryMessageDelegate callback, long roomId, bool desc, int count, long messageId, long beginMsec = 0, long endMsec = 0, int timeout = 0)
+        {
+            return GetRoomMessageByMessageId(callback, roomId, desc, count, messageId, beginMsec, endMsec, chatMTypes, timeout);
+        }
+
+        public int GetRoomChatByMessageId(out HistoryMessageResult result, long roomId, bool desc, int count, long messageId, long beginMsec = 0, long endMsec = 0, int timeout = 0)
+        {
+            return GetRoomMessageByMessageId(out result, roomId, desc, count, messageId, beginMsec, endMsec, chatMTypes, timeout);
+        }
 
         public bool GetBroadcastChat(HistoryMessageDelegate callback, bool desc, int count, long beginMsec = 0, long endMsec = 0, long lastId = 0, int timeout = 0)
         {
@@ -115,6 +133,15 @@ namespace com.fpnn.rtm
             return GetBroadcastMessage(out result, desc, count, beginMsec, endMsec, lastId, chatMTypes, timeout);
         }
 
+        public bool GetBroadcastChatByMessageId(HistoryMessageDelegate callback, bool desc, int count, long messageId, long beginMsec = 0, long endMsec = 0, int timeout = 0)
+        {
+            return GetBroadcastMessageByMessageId(callback, desc, count, messageId, beginMsec, endMsec, chatMTypes, timeout);
+        }
+
+        public int GetBroadcastChatByMessageId(out HistoryMessageResult result, bool desc, int count, long messageId, long beginMsec = 0, long endMsec = 0, int timeout = 0)
+        {
+            return GetBroadcastMessageByMessageId(out result, desc, count, messageId, beginMsec, endMsec, chatMTypes, timeout);
+        }
 
         public bool GetP2PChat(HistoryMessageDelegate callback, long peerUid, bool desc, int count, long beginMsec = 0, long endMsec = 0, long lastId = 0, int timeout = 0)
         {
@@ -126,6 +153,15 @@ namespace com.fpnn.rtm
             return GetP2PMessage(out result, peerUid, desc, count, beginMsec, endMsec, lastId, chatMTypes, timeout);
         }
 
+        public bool GetP2PChatByMessageId(HistoryMessageDelegate callback, long peerUid, bool desc, int count, long messageId, long beginMsec = 0, long endMsec = 0, int timeout = 0)
+        {
+            return GetP2PMessageByMessageId(callback, peerUid, desc, count, messageId, beginMsec, endMsec, chatMTypes, timeout);
+        }
+
+        public int GetP2PChatByMessageId(out HistoryMessageResult result, long peerUid, bool desc, int count, long messageId, long beginMsec = 0, long endMsec = 0, int timeout = 0)
+        {
+            return GetP2PMessageByMessageId(out result, peerUid, desc, count, messageId, beginMsec, endMsec, chatMTypes, timeout);
+        }
         //===========================[ Unread Chat ]=========================//
         //-- Action<List<p2p_uid>, List<groupId>, errorCode>
         public bool GetUnread(Action<List<long>, List<long>, int> callback, bool clear = false, int timeout = 0)
@@ -145,7 +181,8 @@ namespace com.fpnn.rtm
             Quest quest = new Quest("getunread");
             quest.Param("clear", clear);
 
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 List<long> p2pList = null;
                 List<long> groupList = null;
@@ -283,7 +320,8 @@ namespace com.fpnn.rtm
             if (mTypes != null && mTypes.Count > 0)
                 quest.Param("mtypes", mTypes);
 
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 Dictionary<long, int> unreadDictionary = null;
                 Dictionary<long, long> lastUnreadTimestampDictionary = null;
@@ -403,7 +441,8 @@ namespace com.fpnn.rtm
             if (mTypes != null && mTypes.Count > 0)
                 quest.Param("mtypes", mTypes);
 
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 Dictionary<long, int> unreadDictionary = null;
                 Dictionary<long, long> lastUnreadTimestampDictionary = null;
@@ -499,7 +538,8 @@ namespace com.fpnn.rtm
             }
 
             Quest quest = new Quest("getsession");
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 List<long> p2pList = null;
                 List<long> groupList = null;
@@ -554,6 +594,48 @@ namespace com.fpnn.rtm
             {
                 return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
             }
+        }
+
+        //===========================[ Remove Session ]=========================//
+        public bool RemoveSession(DoneDelegate callback, long toUid, int timeout = 0)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("removesession");
+            quest.Param("to", toUid);
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => { callback(errorCode); }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        public int RemoveSession(long toUid, int timeout = 0)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("removesession");
+            quest.Param("to", toUid);
+
+            Answer answer = client.SendQuest(quest, timeout);
+            return answer.ErrorCode();
         }
 
         //===========================[ Delete Chat ]=========================//
@@ -691,7 +773,8 @@ namespace com.fpnn.rtm
                 case ProfanityType.Off: quest.Param("profanity", "off"); break;
             }
 
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 TranslatedInfo tm = null;
 
@@ -806,7 +889,8 @@ namespace com.fpnn.rtm
             quest.Param("text", text);
             quest.Param("classify", classify);
 
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 string resultText = "";
                 List<string> classification = null;
@@ -989,7 +1073,8 @@ namespace com.fpnn.rtm
             if (sampleRate > 0)
                 quest.Param("srate", sampleRate);
 
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 string text = "";
                 string resultLanguage = "";
@@ -1056,9 +1141,113 @@ namespace com.fpnn.rtm
             }
         }
 
+        //===========================[ SpeechTranslate ]=========================//
+        public bool SpeechTranslate(Action<TranslatedInfo, int> callback, byte[] audioBinaryContent, string speechLanguage, string textLanguage = null, string codec = null, int sampleRate = 0, int timeout = 120)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("speechtranslation");
+            quest.Param("audio", audioBinaryContent);
+            quest.Param("speechLanguageCode", speechLanguage);
+            if (textLanguage != null && textLanguage.Length > 0)
+                quest.Param("textLanguageCode", textLanguage);
+
+            if (codec != null && codec.Length > 0)
+                quest.Param("codec", codec);
+
+            if (sampleRate > 0)
+                quest.Param("srate", sampleRate);
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
+                TranslatedInfo translatedInfo = null;
+
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                {
+                    try
+                    {
+                        translatedInfo = new TranslatedInfo();
+                        translatedInfo.sourceLanguage = answer.Want<string>("source");
+                        translatedInfo.targetLanguage = answer.Want<string>("target");
+                        translatedInfo.sourceText = answer.Want<string>("sourceText");
+                        translatedInfo.targetText = answer.Want<string>("targetText");
+                    }
+                    catch (Exception)
+                    {
+                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+                    }
+                }
+                callback(translatedInfo, errorCode);
+            }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        public int SpeechTranslate(out TranslatedInfo translatedInfo, byte[] audioBinaryContent, string speechLanguage, string textLanguage = null, string codec = null, int sampleRate = 0, int timeout = 120)
+        {
+            translatedInfo = null;
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("speechtranslation");
+            quest.Param("audio", audioBinaryContent);
+            quest.Param("speechLanguageCode", speechLanguage);
+            if (textLanguage != null && textLanguage.Length > 0)
+                quest.Param("textLanguageCode", textLanguage);
+
+            if (codec != null && codec.Length > 0)
+                quest.Param("codec", codec);
+
+            if (sampleRate > 0)
+                quest.Param("srate", sampleRate);
+
+            if (codec != null && codec.Length > 0)
+                quest.Param("codec", codec);
+
+            if (sampleRate > 0)
+                quest.Param("srate", sampleRate);
+
+            Answer answer = client.SendQuest(quest, timeout);
+
+            if (answer.IsException())
+                return answer.ErrorCode();
+
+            try
+            {
+                translatedInfo = new TranslatedInfo();
+                translatedInfo.sourceLanguage = answer.Want<string>("source");
+                translatedInfo.targetLanguage = answer.Want<string>("target");
+                translatedInfo.sourceText = answer.Want<string>("sourceText");
+                translatedInfo.targetText = answer.Want<string>("targetText");
+                return fpnn.ErrorCode.FPNN_EC_OK;
+            }
+            catch (Exception)
+            {
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+            }
+        }
+
         //===========================[ TextCheck ]=========================//
         //-- Action<TextCheckResult result, errorCode>
-        public bool TextCheck(Action<TextCheckResult, int> callback, string text, int timeout = 120)
+        public bool TextCheck(Action<TextCheckResult, int> callback, string text, string strategyId = null, int timeout = 120)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -1074,8 +1263,11 @@ namespace com.fpnn.rtm
 
             Quest quest = new Quest("tcheck");
             quest.Param("text", text);
+            if (strategyId != null)
+                quest.Param("strategyId", strategyId);
 
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 TextCheckResult result = new TextCheckResult();
 
@@ -1105,7 +1297,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        public int TextCheck(out TextCheckResult result, string text, int timeout = 120)
+        public int TextCheck(out TextCheckResult result, string text, string strategyId = null, int timeout = 120)
         {
             result = new TextCheckResult();
 
@@ -1115,6 +1307,8 @@ namespace com.fpnn.rtm
 
             Quest quest = new Quest("tcheck");
             quest.Param("text", text);
+            if (strategyId != null)
+                quest.Param("strategyId", strategyId);
 
             Answer answer = client.SendQuest(quest, timeout);
 
@@ -1139,7 +1333,7 @@ namespace com.fpnn.rtm
 
         //===========================[ ImageCheck ]=========================//
         //-------- url version ----------//
-        public bool ImageCheck(Action<CheckResult, int> callback, string imageUrl, int timeout = 120)
+        public bool ImageCheck(Action<CheckResult, int> callback, string imageUrl, string strategyId = null, int timeout = 120)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -1156,8 +1350,12 @@ namespace com.fpnn.rtm
             Quest quest = new Quest("icheck");
             quest.Param("image", imageUrl);
             quest.Param("type", 1);
+            if (strategyId != null)
+                quest.Param("strategyId", strategyId);
 
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 CheckResult result = new CheckResult();
 
@@ -1185,7 +1383,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        public int ImageCheck(out CheckResult result, string imageUrl, int timeout = 120)
+        public int ImageCheck(out CheckResult result, string imageUrl, string strategyId = null, int timeout = 120)
         {
             result = new CheckResult();
 
@@ -1196,6 +1394,9 @@ namespace com.fpnn.rtm
             Quest quest = new Quest("icheck");
             quest.Param("image", imageUrl);
             quest.Param("type", 1);
+            if (strategyId != null)
+                quest.Param("strategyId", strategyId);
+
 
             Answer answer = client.SendQuest(quest, timeout);
 
@@ -1216,7 +1417,7 @@ namespace com.fpnn.rtm
         }
 
         //-------- binary version ----------//
-        public bool ImageCheck(Action<CheckResult, int> callback, byte[] imageContent, int timeout = 120)
+        public bool ImageCheck(Action<CheckResult, int> callback, byte[] imageContent, string strategyId = null, int timeout = 120)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -1233,8 +1434,12 @@ namespace com.fpnn.rtm
             Quest quest = new Quest("icheck");
             quest.Param("image", imageContent);
             quest.Param("type", 2);
+            if (strategyId != null)
+                quest.Param("strategyId", strategyId);
 
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 CheckResult result = new CheckResult();
 
@@ -1262,7 +1467,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        public int ImageCheck(out CheckResult result, byte[] imageContent, int timeout = 120)
+        public int ImageCheck(out CheckResult result, byte[] imageContent, string strategyId = null, int timeout = 120)
         {
             result = new CheckResult();
 
@@ -1273,6 +1478,9 @@ namespace com.fpnn.rtm
             Quest quest = new Quest("icheck");
             quest.Param("image", imageContent);
             quest.Param("type", 2);
+            if (strategyId != null)
+                quest.Param("strategyId", strategyId);
+
 
             Answer answer = client.SendQuest(quest, timeout);
 
@@ -1295,7 +1503,7 @@ namespace com.fpnn.rtm
         //===========================[ AudioCheck ]=========================//
 
         //-------- url version ----------//
-        public bool AudioCheck(Action<CheckResult, int> callback, string audioUrl, string language, string codec = null, int sampleRate = 0, int timeout = 120)
+        public bool AudioCheck(Action<CheckResult, int> callback, string audioUrl, string language, string codec = null, int sampleRate = 0, string strategyId = null, int timeout = 120)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -1313,6 +1521,8 @@ namespace com.fpnn.rtm
             quest.Param("audio", audioUrl);
             quest.Param("type", 1);
             quest.Param("lang", language);
+            if (strategyId != null)
+                quest.Param("strategyId", strategyId);
 
             if (codec != null && codec.Length > 0)
                 quest.Param("codec", codec);
@@ -1320,7 +1530,8 @@ namespace com.fpnn.rtm
             if (sampleRate > 0)
                 quest.Param("srate", sampleRate);
 
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 CheckResult result = new CheckResult();
 
@@ -1348,7 +1559,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        public int AudioCheck(out CheckResult result, string audioUrl, string language, string codec = null, int sampleRate = 0, int timeout = 120)
+        public int AudioCheck(out CheckResult result, string audioUrl, string language, string codec = null, int sampleRate = 0, string strategyId = null, int timeout = 120)
         {
             result = new CheckResult();
 
@@ -1360,6 +1571,8 @@ namespace com.fpnn.rtm
             quest.Param("audio", audioUrl);
             quest.Param("type", 1);
             quest.Param("lang", language);
+            if (strategyId != null)
+                quest.Param("strategyId", strategyId);
 
             if (codec != null && codec.Length > 0)
                 quest.Param("codec", codec);
@@ -1386,7 +1599,7 @@ namespace com.fpnn.rtm
         }
 
         //-------- binary version ----------//
-        public bool AudioCheck(Action<CheckResult, int> callback, byte[] audioContent, string language, string codec = null, int sampleRate = 0, int timeout = 120)
+        public bool AudioCheck(Action<CheckResult, int> callback, byte[] audioContent, string language, string codec = null, int sampleRate = 0, string strategyId = null, int timeout = 120)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -1404,6 +1617,8 @@ namespace com.fpnn.rtm
             quest.Param("audio", audioContent);
             quest.Param("type", 2);
             quest.Param("lang", language);
+            if (strategyId != null)
+                quest.Param("strategyId", strategyId);
 
             if (codec != null && codec.Length > 0)
                 quest.Param("codec", codec);
@@ -1411,7 +1626,8 @@ namespace com.fpnn.rtm
             if (sampleRate > 0)
                 quest.Param("srate", sampleRate);
 
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 CheckResult result = new CheckResult();
 
@@ -1439,7 +1655,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        public int AudioCheck(out CheckResult result, byte[] audioContent, string language, string codec = null, int sampleRate = 0, int timeout = 120)
+        public int AudioCheck(out CheckResult result, byte[] audioContent, string language, string codec = null, int sampleRate = 0, string strategyId = null, int timeout = 120)
         {
             result = new CheckResult();
 
@@ -1451,6 +1667,8 @@ namespace com.fpnn.rtm
             quest.Param("audio", audioContent);
             quest.Param("type", 2);
             quest.Param("lang", language);
+            if (strategyId != null)
+                quest.Param("strategyId", strategyId);
 
             if (codec != null && codec.Length > 0)
                 quest.Param("codec", codec);
@@ -1479,7 +1697,7 @@ namespace com.fpnn.rtm
         //===========================[ VideoCheck ]=========================//
 
         //-------- url version ----------//
-        public bool VideoCheck(Action<CheckResult, int> callback, string videoUrl, string videoName, int timeout = 120)
+        public bool VideoCheck(Action<CheckResult, int> callback, string videoUrl, string videoName, string strategyId = null, int timeout = 120)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -1497,8 +1715,12 @@ namespace com.fpnn.rtm
             quest.Param("video", videoUrl);
             quest.Param("type", 1);
             quest.Param("videoName", videoName);
+            if (strategyId != null)
+                quest.Param("strategyId", strategyId);
 
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 CheckResult result = new CheckResult();
 
@@ -1526,7 +1748,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        public int VideoCheck(out CheckResult result, string videoUrl, string videoName, int timeout = 120)
+        public int VideoCheck(out CheckResult result, string videoUrl, string videoName, string strategyId = null, int timeout = 120)
         {
             result = new CheckResult();
 
@@ -1538,6 +1760,8 @@ namespace com.fpnn.rtm
             quest.Param("video", videoUrl);
             quest.Param("type", 1);
             quest.Param("videoName", videoName);
+            if (strategyId != null)
+                quest.Param("strategyId", strategyId);
 
             Answer answer = client.SendQuest(quest, timeout);
 
@@ -1558,7 +1782,7 @@ namespace com.fpnn.rtm
         }
 
         //-------- binary version ----------//
-        public bool VideoCheck(Action<CheckResult, int> callback, byte[] videoContent, string videoName, int timeout = 120)
+        public bool VideoCheck(Action<CheckResult, int> callback, byte[] videoContent, string videoName, string strategyId = null, int timeout = 120)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -1576,8 +1800,12 @@ namespace com.fpnn.rtm
             quest.Param("video", videoContent);
             quest.Param("type", 2);
             quest.Param("videoName", videoName);
+            if (strategyId != null)
+                quest.Param("strategyId", strategyId);
 
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 CheckResult result = new CheckResult();
 
@@ -1605,7 +1833,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        public int VideoCheck(out CheckResult result, byte[] videoContent, string videoName, int timeout = 120)
+        public int VideoCheck(out CheckResult result, byte[] videoContent, string videoName, string strategyId = null, int timeout = 120)
         {
             result = new CheckResult();
 
@@ -1617,6 +1845,9 @@ namespace com.fpnn.rtm
             quest.Param("video", videoContent);
             quest.Param("type", 2);
             quest.Param("videoName", videoName);
+            if (strategyId != null)
+                quest.Param("strategyId", strategyId);
+
 
             Answer answer = client.SendQuest(quest, timeout);
 

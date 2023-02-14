@@ -30,6 +30,7 @@ namespace com.fpnn.rtm
         public const int RTM_EC_TOO_MANY_ITEMS_IN_PARAMETERS = 200032;
         public const int RTM_EC_EMPTY_PARAMETER = 200033;
         public const int RTM_EC_INVALID_PARAMETER = 200034;
+        public const int RTM_EC_LARGE_DATA = 200035;
 
         public const int RTM_EC_NOT_IN_ROOM = 200040;
         public const int RTM_EC_NOT_GROUP_MEMBER = 200041;
@@ -52,10 +53,22 @@ namespace com.fpnn.rtm
         public const int RTM_EC_PROFANITY_STOP = 200057;
         public const int RTM_EC_NO_CONFIG_IN_CONSOLE = 200060;
         public const int RTM_EC_UNSUPPORTED_TRASNCRIBE_TYPE = 200061;
+        public const int RTM_EC_BLOCK_USER = 200062;
 
         public const int RTM_EC_MESSAGE_NOT_FOUND = 200070;
 
         public const int RTM_EC_UNKNOWN_ERROR = 200999;
+
+        public const int RTC_EC_ENTER_ROOM_AGAIN = 700001;
+        public const int RTC_EC_NOT_IN_ROOM = 700002;
+        public const int RTC_EC_ALREADY_IN_ROOM = 700003;
+        public const int RTC_EC_ROOM_ALREADY_EXIST = 700004;
+        public const int RTC_EC_ROOM_NOT_EXIST = 700005;
+        public const int RTC_EC_INVALID_PARAM = 700006;
+        public const int RTC_EC_PERMISSION_DENIED = 700007;
+        public const int RTC_EC_ROOM_COUNT_LIMIT = 700008;
+        public const int RTC_EC_ROOM_MEMBER_COUNT_LIMIT = 700009;
+        public const int RTC_EC_INVALID_OPERATION = 700010;
 
         public const int RTC_EC_P2P_BUSY = 700030;
         public const int RTC_EC_P2P_NOT_CLOSED = 700031;

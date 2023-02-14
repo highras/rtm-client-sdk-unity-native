@@ -13,7 +13,7 @@ namespace com.fpnn.rtm
     public delegate void KickOutDelegate();
     public delegate void KickoutRoomDelegate(long roomId);
     public delegate void PushMessageDelegate(RTMMessage message);
-    public delegate void PushEnterRTCRoomDelegate(long roomId, long uid, long mtime);
+    public delegate void PushEnterRTCRoomDelegate(long roomId, long uid, long mtime, string nickName);
     public delegate void PushExitRTCRoomDelegate(long roomId, long uid, long mtime);
     public delegate void PushRTCRoomClosedDelegate(long roomId);
     public delegate void PushInviteIntoRTCRoomDelegate(long fromUid, long roomId);
@@ -22,6 +22,18 @@ namespace com.fpnn.rtm
     public delegate void PushAdminCommandDelegate(RTCAdminCommand command, HashSet<long> uids);
     public delegate void PushP2PRTCRequestDelegate(long callId, long peerUid, RTCP2PType type);
     public delegate void PushP2PRTCEventDelegate(long callId, long peerUid, RTCP2PType type, RTCP2PEvent p2pEvent);
+
+    public delegate void PushMicStatusDelegate(long roomId, long uid, int micStatus);
+    public delegate void RTCLIB_PushMicPositionChangeDelegate(long roomId, long uid, int openMic, int micIndex);
+    public delegate void RTCLIB_PushRoomInfoChangeDelegate(long roomId, string name, string description, string announcement, int micStatus, int chatRoomType);
+    public delegate void RTCLIB_PushApplyForMicPositionDelegate(long roomId, long uid, int micIndex);
+    public delegate void RTCLIB_PushInviteMicPositionDelegate(long roomId, int micIndex);
+    public delegate void RTCLIB_PushLockMicDelegate(long roomId, int micIndex, int lock_);
+    public delegate void RTCLIB_PushApplyForMicPositionResultDelegate(long roomId, int micIndex, int agree);
+    public delegate void RTCLIB_PushInviteMicPositionResultDelegate(long roomId, long uid, int micIndex, int agree);
+    public delegate void RTCLIB_PushKickoutMicPositionDelegate(long roomId, long uid, int micIndex);
+    public delegate void RTCLIB_PushLockMicPositionDelegate(long roomId, int micIndex, int lock_);
+
 
     public class RTMQuestProcessor
     {
@@ -96,7 +108,7 @@ namespace com.fpnn.rtm
         public PushMessageDelegate PushBroadcastFileCallback;
 
         //-- RTC
-        public virtual void PushEnterRTCRoom(long roomId, long uid, long mtime) { }
+        public virtual void PushEnterRTCRoom(long roomId, long uid, long mtime, string nickName) { }
         public PushEnterRTCRoomDelegate PushEnterRTCRoomCallback;
 
         public virtual void PushExitRTCRoom(long roomId, long uid, long mtime) { }
@@ -122,16 +134,38 @@ namespace com.fpnn.rtm
 
         public virtual void PushP2PRTCEvent(long callId, long peerUid, RTCP2PType type, RTCP2PEvent p2pEvent) { }
         public PushP2PRTCEventDelegate PushP2PRTCEventCallback;
+
+        //-- RTC
+        public virtual void PushMicStatus(long roomId, long uid, int micStatus) { }
+        public PushMicStatusDelegate PushMicStatusCallback;
+        public virtual void RTCLIB_PushMicPositionChange(long roomId, long uid, int openMic, int micIndex) { }
+        public RTCLIB_PushMicPositionChangeDelegate RTCLIB_PushMicPositionChangeCallback;
+        public virtual void RTCLIB_PushRoomInfoChange(long roomId, string name, string description, string announcement, int micStatus, int chatRoomType) { }
+        public RTCLIB_PushRoomInfoChangeDelegate RTCLIB_PushRoomInfoChangeCallback;
+        public virtual void RTCLIB_PushApplyForMicPosition(long roomId, long uid, int micIndex) { }
+        public RTCLIB_PushApplyForMicPositionDelegate RTCLIB_PushApplyForMicPositionCallback;
+        public virtual void RTCLIB_PushInviteMicPosition(long roomId, int micIndex) { }
+        public RTCLIB_PushInviteMicPositionDelegate RTCLIB_PushInviteMicPositionCallback;
+        public virtual void RTCLIB_PushLockMic(long roomId, int micIndex, int lock_) { }
+        public RTCLIB_PushLockMicDelegate RTCLIB_PushLockMicCallback;
+        public virtual void RTCLIB_PushApplyForMicPositionResult(long roomId, int micIndex, int agree) { }
+        public RTCLIB_PushApplyForMicPositionResultDelegate RTCLIB_PushApplyForMicPositionResultCallback;
+        public virtual void RTCLIB_PushInviteMicPositionResult(long roomId, long uid, int micIndex, int agree) { }
+        public RTCLIB_PushInviteMicPositionResultDelegate RTCLIB_PushInviteMicPositionResultCallback;
+        public virtual void RTCLIB_PushKickoutMicPosition(long roomId, long uid, int micIndex) { }
+        public RTCLIB_PushKickoutMicPositionDelegate RTCLIB_PushKickoutMicPositionCallback;
+        public virtual void RTCLIB_PushLockMicPosition(long roomId, int micIdex, int lock_) { }
+        public RTCLIB_PushLockMicPositionDelegate RTCLIB_PushLockMicPositionCallback;
     }
 
     public class RTMMasterProcessor: IRTMMasterProcessor
     {
-        private RTMQuestProcessor questProcessor;
+        protected RTMQuestProcessor questProcessor;
         private DuplicatedMessageFilter duplicatedFilter;
         private ErrorRecorder errorRecorder;
         private UInt64 connectionId;
         private Int64 lastPingTime;
-        private readonly Dictionary<string, QuestProcessDelegate> methodMap;
+        readonly Dictionary<string, QuestProcessDelegate> methodMap;
 
         public RTMMasterProcessor()
         {
@@ -158,6 +192,16 @@ namespace com.fpnn.rtm
                 { "pushAdminCommand", PushAdminCommand },
                 { "pushP2PRTCRequest", PushP2PRTCRequest },
                 { "pushP2PRTCEvent", PushP2PRTCEvent },
+                { "pushMicStatus", PushMicStatus },
+                { "rtcChatRoom_pushMicPositionChange", RTCLIB_PushMicPositionChange },
+                { "rtcChatRoom_pushRoomInfoChange", RTCLIB_PushRoomInfoChange },
+                { "rtcChatRoom_pushApplyForMicPosition", RTCLIB_PushApplyForMicPosition },
+                { "rtcChatRoom_pushInviteMicPosition", RTCLIB_PushInviteMicPosition },
+                { "rtcChatRoom_pushLockMic", RTCLIB_PushLockMic },
+                { "rtcChatRoom_pushApplyForMicPositionResult", RTCLIB_PushApplyForMicPositionResult },
+                { "rtcChatRoom_pushInviteMicPositionResult", RTCLIB_PushInviteMicPositionResult },
+                { "rtcChatRoom_pushKickoutMicPosition", RTCLIB_PushKickoutMicPosition },
+                { "rtcChatRoom_pushLockMicPosition", RTCLIB_PushLockMicPosition }
           };
         }
 
@@ -687,13 +731,14 @@ namespace com.fpnn.rtm
             long roomId = quest.Want<long>("rid");
             long uid = quest.Want<long>("uid");
             long mtime = quest.Want<long>("mtime");
+            string nickName = quest.Get<string>("nickName", null);
 
-            questProcessor.PushEnterRTCRoom(roomId, uid, mtime);
+            questProcessor.PushEnterRTCRoom(roomId, uid, mtime, nickName);
             if (questProcessor.PushEnterRTCRoomCallback != null)
             {
                 RTMControlCenter.callbackQueue.PostAction(() =>
                 {
-                    questProcessor.PushEnterRTCRoomCallback?.Invoke(roomId, uid, mtime);
+                    questProcessor.PushEnterRTCRoomCallback?.Invoke(roomId, uid, mtime, nickName);
                 });
             }
             return null;
@@ -873,6 +918,230 @@ namespace com.fpnn.rtm
             RTMControlCenter.callbackQueue.PostAction(() => {
                 questProcessor.PushP2PRTCEventCallback?.Invoke(callId, peerUid, type, p2pEvent);
             });
+            return null;
+        }
+
+        public Answer PushMicStatus(UInt64 connectionId, string endpoint, Quest quest)
+        {
+            AdvanceAnswer.SendAnswer(new Answer(quest));
+
+            if (questProcessor == null)
+                return null;
+
+            long roomId = quest.Want<long>("rid");
+            long uid = quest.Want<long>("uid");
+            int status = quest.Want<int>("micStatus");
+
+            questProcessor.PushMicStatus(roomId, uid, status);
+            if (questProcessor.PushMicStatusCallback != null)
+            {
+                RTMControlCenter.callbackQueue.PostAction(() =>
+                {
+                    questProcessor.PushMicStatusCallback?.Invoke(roomId, uid, status);
+                });
+            }
+            return null;
+        }
+
+        public Answer RTCLIB_PushMicPositionChange(UInt64 connectionId, string endpoint, Quest quest)
+        {
+            AdvanceAnswer.SendAnswer(new Answer(quest));
+
+            if (questProcessor == null)
+                return null;
+
+            long roomId = quest.Want<long>("rid");
+            long uid = quest.Want<long>("uid");
+            int openMic = quest.Want<int>("openMic");
+            int micIndex = quest.Want<int>("micIndex");
+
+            questProcessor.RTCLIB_PushMicPositionChange(roomId, uid, openMic, micIndex);
+            if (questProcessor.RTCLIB_PushMicPositionChangeCallback != null)
+            {
+                RTMControlCenter.callbackQueue.PostAction(() =>
+                {
+                    questProcessor.RTCLIB_PushMicPositionChangeCallback?.Invoke(roomId, uid, openMic, micIndex);
+                });
+            }
+            return null;
+        }
+
+        public Answer RTCLIB_PushRoomInfoChange(UInt64 connectionId, string endpoint, Quest quest)
+        {
+            AdvanceAnswer.SendAnswer(new Answer(quest));
+
+            if (questProcessor == null)
+                return null;
+
+            long roomId = quest.Want<long>("rid");
+            string name = quest.Get<string>("name", null);
+            string description = quest.Get<string>("description", null);
+            string announcement = quest.Get<string>("announcement", null);
+            int micStatus = quest.Get<int>("micStatus", -1);
+            int chatRoomType = quest.Get<int>("chatroomType", -1);
+
+            questProcessor.RTCLIB_PushRoomInfoChange(roomId, name, description, announcement, micStatus, chatRoomType);
+            if (questProcessor.RTCLIB_PushRoomInfoChangeCallback != null)
+            {
+                RTMControlCenter.callbackQueue.PostAction(() =>
+                {
+                    questProcessor.RTCLIB_PushRoomInfoChangeCallback?.Invoke(roomId, name, description, announcement, micStatus, chatRoomType);
+                });
+            }
+            return null;
+        }    
+
+        public Answer RTCLIB_PushApplyForMicPosition(UInt64 connectionId, string endpoint, Quest quest)
+        {
+            AdvanceAnswer.SendAnswer(new Answer(quest));
+
+            if (questProcessor == null)
+                return null;
+
+            long roomId = quest.Want<long>("rid");
+            long uid = quest.Want<long>("uid");
+            int micIndex = quest.Want<int>("micIndex");
+
+            questProcessor.RTCLIB_PushApplyForMicPosition(roomId, uid, micIndex);
+            if (questProcessor.RTCLIB_PushApplyForMicPositionCallback != null)
+            {
+                RTMControlCenter.callbackQueue.PostAction(() =>
+                {
+                    questProcessor.RTCLIB_PushApplyForMicPositionCallback?.Invoke(roomId, uid, micIndex);
+                });
+            }
+            return null;
+        }
+
+        public Answer RTCLIB_PushInviteMicPosition(UInt64 connectionId, string endpoint, Quest quest)
+        {
+            AdvanceAnswer.SendAnswer(new Answer(quest));
+
+            if (questProcessor == null)
+                return null;
+
+            long roomId = quest.Want<long>("rid");
+            int micIndex = quest.Want<int>("micIndex");
+
+            questProcessor.RTCLIB_PushInviteMicPosition(roomId, micIndex);
+            if (questProcessor.RTCLIB_PushInviteMicPositionCallback != null)
+            {
+                RTMControlCenter.callbackQueue.PostAction(() =>
+                {
+                    questProcessor.RTCLIB_PushInviteMicPositionCallback?.Invoke(roomId, micIndex);
+                });
+            }
+            return null;
+        }
+
+        public Answer RTCLIB_PushLockMic(UInt64 connectionId, string endpoint, Quest quest)
+        {
+            AdvanceAnswer.SendAnswer(new Answer(quest));
+
+            if (questProcessor == null)
+                return null;
+
+            long roomId = quest.Want<long>("rid");
+            int micIndex = quest.Want<int>("micIndex");
+            int lock_ = quest.Want<int>("lock");
+
+            questProcessor.RTCLIB_PushLockMic(roomId, micIndex, lock_);
+            if (questProcessor.RTCLIB_PushLockMicCallback != null)
+            {
+                RTMControlCenter.callbackQueue.PostAction(() =>
+                {
+                    questProcessor.RTCLIB_PushLockMicCallback?.Invoke(roomId, micIndex, lock_);
+                });
+            }
+            return null;
+        }
+
+        public Answer RTCLIB_PushApplyForMicPositionResult(UInt64 connectionId, string endpoint, Quest quest)
+        {
+            AdvanceAnswer.SendAnswer(new Answer(quest));
+
+            if (questProcessor == null)
+                return null;
+
+            long roomId = quest.Want<long>("rid");
+            int micIndex = quest.Want<int>("micIndex");
+            int agree = quest.Want<int>("agree");
+
+            questProcessor.RTCLIB_PushApplyForMicPositionResult(roomId, micIndex, agree);
+            if (questProcessor.RTCLIB_PushApplyForMicPositionResultCallback != null)
+            {
+                RTMControlCenter.callbackQueue.PostAction(() =>
+                {
+                    questProcessor.RTCLIB_PushApplyForMicPositionResultCallback?.Invoke(roomId, micIndex, agree);
+                });
+            }
+            return null;
+        }
+
+        public Answer RTCLIB_PushInviteMicPositionResult(UInt64 connectionId, string endpoint, Quest quest)
+        {
+            AdvanceAnswer.SendAnswer(new Answer(quest));
+
+            if (questProcessor == null)
+                return null;
+
+            long roomId = quest.Want<long>("rid");
+            long uid = quest.Want<long>("uid");
+            int micIndex = quest.Want<int>("micIndex");
+            int agree = quest.Want<int>("agree");
+
+            questProcessor.RTCLIB_PushInviteMicPositionResult(roomId, uid, micIndex, agree);
+            if (questProcessor.RTCLIB_PushInviteMicPositionResultCallback != null)
+            {
+                RTMControlCenter.callbackQueue.PostAction(() =>
+                {
+                    questProcessor.RTCLIB_PushInviteMicPositionResultCallback?.Invoke(roomId, uid, micIndex, agree);
+                });
+            }
+            return null;
+        }
+
+        public Answer RTCLIB_PushKickoutMicPosition(UInt64 connectionId, string endpoint, Quest quest)
+        {
+            AdvanceAnswer.SendAnswer(new Answer(quest));
+
+            if (questProcessor == null)
+                return null;
+
+            long roomId = quest.Want<long>("rid");
+            long uid = quest.Want<long>("uid");
+            int micIndex = quest.Want<int>("micIndex");
+
+            questProcessor.RTCLIB_PushKickoutMicPosition(roomId, uid, micIndex);
+            if (questProcessor.RTCLIB_PushKickoutMicPositionCallback != null)
+            {
+                RTMControlCenter.callbackQueue.PostAction(() =>
+                {
+                    questProcessor.RTCLIB_PushKickoutMicPositionCallback?.Invoke(roomId, uid, micIndex);
+                });
+            }
+            return null;
+        }
+
+        public Answer RTCLIB_PushLockMicPosition(UInt64 connectionId, string endpoint, Quest quest)
+        {
+            AdvanceAnswer.SendAnswer(new Answer(quest));
+
+            if (questProcessor == null)
+                return null;
+
+            long roomId = quest.Want<long>("rid");
+            int micIndex = quest.Want<int>("micIndex");
+            int lock_ = quest.Want<int>("lock");
+
+            questProcessor.RTCLIB_PushLockMicPosition(roomId, micIndex, lock_);
+            if (questProcessor.RTCLIB_PushLockMicPositionCallback != null)
+            {
+                RTMControlCenter.callbackQueue.PostAction(() =>
+                {
+                    questProcessor.RTCLIB_PushLockMicPositionCallback?.Invoke(roomId, micIndex, lock_);
+                });
+            }
             return null;
         }
     }

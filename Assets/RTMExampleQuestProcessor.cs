@@ -248,7 +248,7 @@ namespace example.common
                     Console.WriteLine($" -- [RTM Audio] language: {message.fileInfo.language}, duration: {message.fileInfo.duration}");
             }
         }
-        public override void PushEnterRTCRoom(long roomId, long uid, long mtime)
+        public override void PushEnterRTCRoom(long roomId, long uid, long mtime, string nickName)
         {
             lock (this)
             {

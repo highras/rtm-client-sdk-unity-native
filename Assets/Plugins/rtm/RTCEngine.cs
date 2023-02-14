@@ -239,6 +239,7 @@ namespace com.fpnn.rtm
 #if UNITY_ANDROID
         [DllImport("RTCNative")]
         private static extern void initRTCEngine(IntPtr application, VoiceCallbackDelegate callback, int channelNum);
+        //private static extern void initRTCEngine(IntPtr application, IntPtr focusObject, VoiceCallbackDelegate callback, int channelNum);
 
         [DllImport("RTCNative")]
         public static extern void headsetStat();
@@ -247,14 +248,38 @@ namespace com.fpnn.rtm
         internal static extern void setBackground(bool flag);
 
         [DllImport("RTCNative")]
+        internal static extern void stopVoice();
+
+        [DllImport("RTCNative")]
         public static extern void SetLogger(LoggerCallBack callback);
+
+        class AudioFocusListener : AndroidJavaProxy
+        {
+            public AudioFocusListener() : base("android.media.AudioManager$OnAudioFocusChangeListener") { }
+            public void onAudioFocusChange(int focus)
+            {
+                //AudioManager.AUDIOFOCUS_LOSS_TRANSIENT || AudioManager.AUDIOFOCUS_LOSS
+                if (focus == -1 || focus == -2)
+                {
+                    stopVoice();
+                }
+                //AudioManager.AUDIOFOCUS_GAIN
+                else if (focus == 1)
+                {
+                    if (GetActiveRoomId() != -1 || GetP2PCallId() != -1)
+                        initVoice();
+                    else
+                        stopVoice();
+                }
+            }
+        }
 #endif
 
         private volatile static bool running = false;
         private static Thread routineThread;
-        private static System.Object interLocker;
+        private static System.Object interLocker = new System.Object();
         private static RTMClient rtcClient;
-        private static RTMClient p2pRequestingClient;
+        //private static RTMClient p2pRequestingClient;
         private static int seqNum = 0;
         private static int seqNumVideo = 0;
         private static Int64 timeOffset = 0;
@@ -280,7 +305,7 @@ namespace com.fpnn.rtm
         public static void CloseP2PRTC()
         { 
             SetP2PInfo(-1, -1, RTCP2P_STATE.CLOSED);
-            ClearP2PRequestClient();
+            //ClearP2PRequestClient();
             CloseMicroPhone();
             CloseVoicePlay();
             CleanRTC();
@@ -340,22 +365,22 @@ namespace com.fpnn.rtm
             }
         }
 
-        public static void SetP2PRequestClient(RTMClient client)
-        { 
-            lock (interLocker)
-            {
-                if (client != null)
-                    p2pRequestingClient = client;
-            }
-        }
+        //public static void SetP2PRequestClient(RTMClient client)
+        //{ 
+        //    lock (interLocker)
+        //    {
+        //        if (client != null)
+        //            p2pRequestingClient = client;
+        //    }
+        //}
 
-        public static void ClearP2PRequestClient()
-        { 
-            lock (interLocker)
-            {
-                p2pRequestingClient = null;
-            }
-        }
+        //public static void ClearP2PRequestClient()
+        //{ 
+        //    lock (interLocker)
+        //    {
+        //        p2pRequestingClient = null;
+        //    }
+        //}
 
         public static void SetP2PCallID(long callID)
         { 
@@ -397,7 +422,7 @@ namespace com.fpnn.rtm
             {
                 if (rtcClient == null)
                     return false;
-                if (rtcClient.IsInRTCRoom(roomId) == false)
+                if (roomId != -1 && rtcClient.IsInRTCRoom(roomId) == false)
                     return false;
                 activeRoomId = roomId;
                 return true;
@@ -512,7 +537,6 @@ namespace com.fpnn.rtm
             SetLogger(Log);
 #endif
             running = true;
-            interLocker = new System.Object();
             timeOffsetBuffer = new Queue();
 
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
@@ -740,8 +764,11 @@ namespace com.fpnn.rtm
                     return;
                 if (client != rtcClient)
                     return;
+                SetActiveRoomId(-1);
+                SetP2PInfo(-1, -1, RTCP2P_STATE.CLOSED);
                 CloseVoicePlay();
                 CloseMicroPhone();
+                CleanRTC();
                 rtcClient = null;
             }
         }
@@ -765,19 +792,6 @@ namespace com.fpnn.rtm
             }
             receiveVoice(uid, seq, data, data.Length);
         }
-
-//            long uid = quest.Want<long>("uid");
-//            long roomId = quest.Want<long>("rid");
-//            long seq = quest.Want<long>("seq");
-//            long flags = quest.Want<long>("flags");
-//            long timestamp = quest.Want<long>("timestamp");
-//            long rotation = quest.Want<long>("rotation");
-//            long version = quest.Want<long>("version");
-//            int facing = quest.Want<int>("facing");
-//            int captureLevel = quest.Want<int>("captureLevel");
-//            byte[] data = quest.Want<byte[]>("data");
-//            byte[] sps = quest.Want<byte[]>("sps");
-//            byte[] pps = quest.Want<byte[]>("pps");
 
 
         public static void ReceiveVideo(UInt64 connectionId, long uid, long seq, long flags, long timeStamp, long rotation, long version, int facing, int captureLevel, byte[] data, byte[] sps, byte[] pps)
