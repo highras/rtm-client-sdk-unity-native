@@ -182,7 +182,7 @@ namespace com.fpnn.rtm
         internal static extern void unsubscribeVideo(long uid);
 
         [DllImport("__Internal")]
-        internal static extern void requirePermission();
+        internal static extern void requirePermission(bool requireCamera);
 #else
         [DllImport("RTCNative")]
         private static extern void initRTCEngine(VoiceCallbackDelegate callback, ActiveRoomCallbackDelegate activeRoomCallback, int channelNum);
@@ -518,7 +518,7 @@ namespace com.fpnn.rtm
         }
 
 
-        public static void Init()
+        public static void Init(bool requireCamera = false)
         {
 #if RTM_DISABLE_RTC
             Assert.IsTrue(false, "RTC is disabled, please remove the RTM_DISABLE_RTC define in \"Scripting Define Symbols\"");
@@ -526,9 +526,18 @@ namespace com.fpnn.rtm
             if (running)
                 return;
 #if UNITY_ANDROID
-            if (!Permission.HasUserAuthorizedPermission(Permission.Microphone) || !Permission.HasUserAuthorizedPermission(Permission.Camera))
+            bool microphone = false;
+            bool camera = false;
+            if (!Permission.HasUserAuthorizedPermission(Permission.Microphone))
+                microphone = true;
+            if (!Permission.HasUserAuthorizedPermission(Permission.Microphone) && requireCamera)
+                camera = true;
+            if (microphone && camera)
                 Permission.RequestUserPermissions(new string[] { Permission.Microphone, Permission.Camera});
-
+            else if (microphone)
+                Permission.RequestUserPermissions(new string[] { Permission.Microphone});
+            else if (camera)
+                Permission.RequestUserPermissions(new string[] { Permission.Camera});
         
             var version = new AndroidJavaClass("android.os.Build$VERSION");
             int osVersion = version.GetStatic<int>("SDK_INT");
@@ -545,7 +554,7 @@ namespace com.fpnn.rtm
 #elif (UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
             initRTCEngine(VoiceCallback, ActiveRoomCallback, 1);
 #elif UNITY_IOS
-            requirePermission();
+            requirePermission(requireCamera);
             initRTCEngine(VoiceCallback, ActiveRoomCallback, 1);
 #elif UNITY_ANDROID
             //initRTCEngine(VoiceCallback, osVersion, 1);
