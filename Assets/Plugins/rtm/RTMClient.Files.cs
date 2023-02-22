@@ -875,5 +875,16 @@ namespace com.fpnn.rtm
         {
             return RealSendFile(out messageId, FileTokenType.Room, roomId, (byte)type, fileContent, filename, fileExtension, attrs, null, timeout);
         }
+
+        //===========================[ Upload File ]=========================//
+        public bool UploadFile(Action<string, uint, int> callback, MessageType type, byte[] fileContent, string filename, string fileExtension = "", string attrs = "", int timeout = 120)
+        {
+            return RealUploadFile(callback, FileTokenType.Upload, (byte)type, fileContent, filename, fileExtension, attrs, null, timeout);
+        }
+
+        public int UploadFile(out string url, out uint size, MessageType type, byte[] fileContent, string filename, string fileExtension = "", string attrs = "", int timeout = 120)
+        {
+            return RealUploadFile(out url, out size, FileTokenType.Upload, (byte)type, fileContent, filename, fileExtension, attrs, null, timeout);
+        }
     }
 }
