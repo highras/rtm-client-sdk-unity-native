@@ -661,21 +661,29 @@ namespace com.fpnn.rtm
 
         public static void OpenMicroPhone()
         {
+            if (RTCEngine.GetActiveRoomId() == -1 && RTCEngine.GetP2PCallId() == -1)
+                return;
             microphone = true;
             RTCEngine.openMicrophone();
         }
         public static void CloseMicroPhone()
         {
+            if (RTCEngine.GetActiveRoomId() == -1 && RTCEngine.GetP2PCallId() == -1)
+                return;
             microphone = false;
             RTCEngine.closeMicrophone();
         }
         public static void OpenVoicePlay()
         {
+            if (RTCEngine.GetActiveRoomId() == -1 && RTCEngine.GetP2PCallId() == -1)
+                return;
             voicePlay = true;
             RTCEngine.openVoicePlay();
         }
         public static void CloseVoicePlay() 
         {
+            if (RTCEngine.GetActiveRoomId() == -1 && RTCEngine.GetP2PCallId() == -1)
+                return;
             voicePlay = false;
             RTCEngine.closeVoicePlay();
         }
