@@ -40,6 +40,8 @@ namespace com.fpnn.rtm
         [MonoPInvokeCallback(typeof(HeadsetStatusDelegate))]
         public static void HeadsetStatusCallback(int headsetType)
         {
+            if (RTCEngine.GetActiveRoomId() == -1 && RTCEngine.GetP2PCallId() == -1)
+                return;
             if (headsetType == 0) //蓝牙
             {
                 Thread thread = new Thread(() =>
@@ -180,7 +182,8 @@ namespace com.fpnn.rtm
                 {
                     _isBackground = false;
 #if UNITY_ANDROID
-                    RTCEngine.setBackground(false);
+                    if (RTCEngine.GetActiveRoomId() != -1 || RTCEngine.GetP2PCallId() != -1)
+                        RTCEngine.setBackground(false);
                     //RTCEngine.Resume();
 #endif
                 }

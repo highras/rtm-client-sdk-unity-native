@@ -418,6 +418,11 @@ namespace com.fpnn.rtm
 
         public static bool SetActiveRoomId(Int64 roomId)
         { 
+            RTCEngine.InitVoice();
+            RTCEngine.OpenVoicePlay();
+            RTCEngine.CloseMicroPhone();
+
+
             lock (interLocker)
             {
                 if (rtcClient == null)

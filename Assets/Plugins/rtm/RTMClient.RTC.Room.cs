@@ -52,9 +52,6 @@ namespace com.fpnn.rtm
                         callback(0, errorCode2);
                         return;
                     }
-                    RTCEngine.OpenVoicePlay();
-                    RTCEngine.CloseMicroPhone();
-                    RTCEngine.InitVoice();
                     if (roomType == RTCRoomType.VideoRoom)
                         RTCEngine.InitVideo(uid);
                     lock (rtcInterLocker)
@@ -86,9 +83,6 @@ namespace com.fpnn.rtm
             int errorCode2 = enterRTCRoom((int)projectId, uid, roomId, token, out _, out _, out _, out _, timeout);
             if (errorCode2 == fpnn.ErrorCode.FPNN_EC_OK)
             {
-                RTCEngine.OpenVoicePlay();
-                RTCEngine.CloseMicroPhone();
-                RTCEngine.InitVoice();
                 if (roomType == RTCRoomType.VideoRoom)
                     RTCEngine.InitVideo(uid);
 
@@ -124,9 +118,6 @@ namespace com.fpnn.rtm
                         callback(0, RTCRoomType.InvalidRoom, errorCode2);
                         return;
                     }
-                    RTCEngine.OpenVoicePlay();
-                    RTCEngine.CloseMicroPhone();
-                    RTCEngine.InitVoice();
                     if (roomType == RTCRoomType.VideoRoom)
                         RTCEngine.InitVideo(uid);
 
@@ -161,9 +152,6 @@ namespace com.fpnn.rtm
             int errorCode2 = enterRTCRoom((int)projectId, uid, roomId, token, out _, out _, out _, out _, timeout);
             if (errorCode2 == fpnn.ErrorCode.FPNN_EC_OK)
             { 
-                RTCEngine.OpenVoicePlay();
-                RTCEngine.CloseMicroPhone();
-                RTCEngine.InitVoice();
                 if (roomType == RTCRoomType.VideoRoom)
                     RTCEngine.InitVideo(uid);
 
