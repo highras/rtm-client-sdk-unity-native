@@ -103,9 +103,9 @@ namespace com.fpnn.rtm
 
         private IRTMMasterProcessor processor;
         private TCPClient rtmGate;
-        //private TCPClient rtcGate;
+        private TCPClient rtcGate;
         private IRTMMasterProcessor rtcProcessor;
-        private UDPClient rtcGate;
+        //private UDPClient rtcGate;
         private UInt64 rtmGateConnectionId;
 
         private AuthStatusInfo authStatsInfo;
@@ -321,8 +321,8 @@ namespace com.fpnn.rtm
             }
         }
 
-        //private TCPClient GetRTCClient()
-        internal UDPClient GetRTCClient()
+        internal TCPClient GetRTCClient()
+        //internal UDPClient GetRTCClient()
         { 
             lock (interLocker)
             {
@@ -440,8 +440,8 @@ namespace com.fpnn.rtm
 
         private void BuildRTCGateClient(string originalEndpoint)
         { 
-            //rtcGate = TCPClient.Create(adjustEndpoint(originalEndpoint), true);
-            rtcGate = UDPClient.Create(adjustEndpoint(originalEndpoint), true);
+            rtcGate = TCPClient.Create(adjustEndpoint(originalEndpoint), true);
+            //rtcGate = UDPClient.Create(adjustEndpoint(originalEndpoint), true);
 
             if (errorRecorder != null)
                 rtcGate.SetErrorRecorder(errorRecorder);

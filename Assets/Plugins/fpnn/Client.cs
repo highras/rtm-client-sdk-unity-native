@@ -44,63 +44,7 @@ namespace com.fpnn
             Debug.Log(payload);
         }
 
-#if UNITY_IOS
-
-        [DllImport("__Internal")]
-        protected static extern IntPtr createTCPClient(string host, int port, bool autoConnect);
-
-        [DllImport("__Internal")]
-        protected static extern IntPtr createUDPClient(string host, int port, bool autoConnect);
-
-        [DllImport("__Internal")]
-        protected static extern IntPtr createTCPClientWithEndpoint(string endpoint, bool autoConnect);
-
-        [DllImport("__Internal")]
-        protected static extern IntPtr createUDPClientWithEndpoint(string endpoint, bool autoConnect);
-
-        [DllImport("__Internal")]
-        protected static extern void destroyClient(IntPtr clientDelegate);
-
-        [DllImport("__Internal")]
-        protected static extern UInt64 connectionId(IntPtr clientDelegate);
-
-        [DllImport("__Internal")]
-        protected static extern bool isConnected(IntPtr clientDelegate);
-
-        [DllImport("__Internal")]
-        protected static extern bool syncConnect(IntPtr clientDelegate);
-
-        [DllImport("__Internal")]
-        protected static extern bool asyncConnect(IntPtr clientDelegate);
-
-        [DllImport("__Internal")]
-        protected static extern void closeClient(IntPtr clientDelegate);
-
-        [DllImport("__Internal")]
-        protected static extern bool sendData(IntPtr clientDelegate, byte[] data, int len);
-
-        [DllImport("__Internal")]
-        protected static extern void registerConnectedCallback(IntPtr processorDelegate, ConnectionConnectedCallback callback);
-
-        [DllImport("__Internal")]
-        protected static extern void registerClosedCallback(IntPtr processorDelegate, ConnectionClosedCallback callback);
-
-        [DllImport("__Internal")]
-        protected static extern void setQuestProcessor(IntPtr client, IntPtr clientDelegate, IntPtr questProcessorDelegate);
-
-        [DllImport("__Internal")]
-        protected static extern IntPtr createQuestProcessor();
-
-        [DllImport("__Internal")]
-        protected static extern void destroyQuestProcessor(IntPtr processorDelegate);
-
-        [DllImport("__Internal")]
-        public static extern bool closeEngine();
-
-        [DllImport("__Internal")]
-        public static extern void SetLogger(LoggerCallBack callback);
-
-#else
+#if (UNITY_ANDROID || UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
         [DllImport("fpnn")]
         protected static extern IntPtr createTCPClient(string host, int port, bool autoConnect);
 
@@ -155,6 +99,63 @@ namespace com.fpnn
         [DllImport("fpnn")]
         public static extern void SetLogger(LoggerCallBack callback);
 
+
+#elif UNITY_IOS
+
+        [DllImport("__Internal")]
+        protected static extern IntPtr createTCPClient(string host, int port, bool autoConnect);
+
+        [DllImport("__Internal")]
+        protected static extern IntPtr createUDPClient(string host, int port, bool autoConnect);
+
+        [DllImport("__Internal")]
+        protected static extern IntPtr createTCPClientWithEndpoint(string endpoint, bool autoConnect);
+
+        [DllImport("__Internal")]
+        protected static extern IntPtr createUDPClientWithEndpoint(string endpoint, bool autoConnect);
+
+        [DllImport("__Internal")]
+        protected static extern void destroyClient(IntPtr clientDelegate);
+
+        [DllImport("__Internal")]
+        protected static extern UInt64 connectionId(IntPtr clientDelegate);
+
+        [DllImport("__Internal")]
+        protected static extern bool isConnected(IntPtr clientDelegate);
+
+        [DllImport("__Internal")]
+        protected static extern bool syncConnect(IntPtr clientDelegate);
+
+        [DllImport("__Internal")]
+        protected static extern bool asyncConnect(IntPtr clientDelegate);
+
+        [DllImport("__Internal")]
+        protected static extern void closeClient(IntPtr clientDelegate);
+
+        [DllImport("__Internal")]
+        protected static extern bool sendData(IntPtr clientDelegate, byte[] data, int len);
+
+        [DllImport("__Internal")]
+        protected static extern void registerConnectedCallback(IntPtr processorDelegate, ConnectionConnectedCallback callback);
+
+        [DllImport("__Internal")]
+        protected static extern void registerClosedCallback(IntPtr processorDelegate, ConnectionClosedCallback callback);
+
+        [DllImport("__Internal")]
+        protected static extern void setQuestProcessor(IntPtr client, IntPtr clientDelegate, IntPtr questProcessorDelegate);
+
+        [DllImport("__Internal")]
+        protected static extern IntPtr createQuestProcessor();
+
+        [DllImport("__Internal")]
+        protected static extern void destroyQuestProcessor(IntPtr processorDelegate);
+
+        [DllImport("__Internal")]
+        public static extern bool closeEngine();
+
+        [DllImport("__Internal")]
+        public static extern void SetLogger(LoggerCallBack callback);
+#else
 #endif
 
 

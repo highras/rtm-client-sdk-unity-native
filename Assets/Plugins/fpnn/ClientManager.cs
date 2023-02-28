@@ -31,11 +31,12 @@ namespace com.fpnn
                 ClientManager.dealAnswer(connectionId, answer);
             }
         }
-#if UNITY_IOS
-        [DllImport("__Internal")]
-        private static extern void setRecvDataCallback(RecvDataDelegate callback);
-#else
+
+#if (UNITY_ANDROID || UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
         [DllImport("fpnn")]
+        private static extern void setRecvDataCallback(RecvDataDelegate callback);
+#elif UNITY_IOS
+        [DllImport("__Internal")]
         private static extern void setRecvDataCallback(RecvDataDelegate callback);
 #endif
 

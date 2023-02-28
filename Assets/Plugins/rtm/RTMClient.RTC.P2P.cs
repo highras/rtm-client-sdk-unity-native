@@ -462,7 +462,8 @@ namespace com.fpnn.rtm
 
         private bool setP2PRequest(DoneDelegate callback, int pid, long uid, RTCP2PType type, long peerUid, long callId, int timeout = 0)
         {
-            UDPClient client = GetRTCClient();
+            //UDPClient client = GetRTCClient();
+            TCPClient client = GetRTCClient();
             if (client == null)
             {
                 if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
@@ -494,7 +495,8 @@ namespace com.fpnn.rtm
 
         private int setP2PRequest(int pid, long uid, RTCP2PType type, long peerUid, long callId, int timeout = 0)
         {
-            UDPClient client = GetRTCClient();
+            //UDPClient client = GetRTCClient();
+            TCPClient client = GetRTCClient();
             if (client == null)
                 return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
 

@@ -135,7 +135,52 @@ namespace com.fpnn.rtm
             string payload = Marshal.PtrToStringAnsi(log);
             Debug.Log(payload);
         }
-#if UNITY_IOS
+#if (UNITY_ANDROID || UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+        [DllImport("RTCNative")]
+        private static extern void initRTCEngine(VoiceCallbackDelegate callback, ActiveRoomCallbackDelegate activeRoomCallback, int channelNum);
+
+        [DllImport("RTCNative")]
+        private static extern void openMicrophone();
+
+        [DllImport("RTCNative")]
+        private static extern void closeMicrophone();
+
+        [DllImport("RTCNative")]
+        private static extern void openVoicePlay();
+
+        [DllImport("RTCNative")]
+        private static extern void closeVoicePlay();
+
+        [DllImport("RTCNative")]
+        private static extern void receiveVoice(long uid, long seq, byte[] data, int length);
+
+        [DllImport("RTCNative")]
+        private static extern void initVoice();
+
+        [DllImport("RTCNative")]
+        private static extern void initVideo(long uid, VideoCallbackDelegate callback);
+
+        [DllImport("RTCNative")]
+        private static extern void openCamera();
+
+        [DllImport("RTCNative")]
+        private static extern void closeCamera();
+
+        [DllImport("RTCNative")]
+        private static extern void switchCamera(bool frontCamera);
+
+        [DllImport("RTCNative")]
+        private static extern void getVideoFrame(long uid, IntPtr data, ref int size, ref bool facing);
+
+        [DllImport("RTCNative")]
+        private static extern void receiveVideo(long uid, byte[] data, int dataLength, byte[] sps, int spsLength, byte[] pps, int ppsLength, long flags, long timestamp, long seq, int facing);
+
+        [DllImport("RTCNative")]
+        private static extern void cleanRTC();
+
+        [DllImport("RTCNative")]
+        internal static extern void unsubscribeVideo(long uid);
+#elif UNITY_IOS
         [DllImport("__Internal")]
         private static extern void initRTCEngine(VoiceCallbackDelegate callback, ActiveRoomCallbackDelegate activeRoomCallback, int channelNum);
 
@@ -184,51 +229,6 @@ namespace com.fpnn.rtm
         [DllImport("__Internal")]
         internal static extern void requirePermission(bool requireCamera);
 #else
-        [DllImport("RTCNative")]
-        private static extern void initRTCEngine(VoiceCallbackDelegate callback, ActiveRoomCallbackDelegate activeRoomCallback, int channelNum);
-
-        [DllImport("RTCNative")]
-        private static extern void openMicrophone();
-
-        [DllImport("RTCNative")]
-        private static extern void closeMicrophone();
-
-        [DllImport("RTCNative")]
-        private static extern void openVoicePlay();
-
-        [DllImport("RTCNative")]
-        private static extern void closeVoicePlay();
-
-        [DllImport("RTCNative")]
-        private static extern void receiveVoice(long uid, long seq, byte[] data, int length);
-
-        [DllImport("RTCNative")]
-        private static extern void initVoice();
-
-        [DllImport("RTCNative")]
-        private static extern void initVideo(long uid, VideoCallbackDelegate callback);
-
-        [DllImport("RTCNative")]
-        private static extern void openCamera();
-
-        [DllImport("RTCNative")]
-        private static extern void closeCamera();
-
-        [DllImport("RTCNative")]
-        private static extern void switchCamera(bool frontCamera);
-
-        [DllImport("RTCNative")]
-        private static extern void getVideoFrame(long uid, IntPtr data, ref int size, ref bool facing);
-
-        [DllImport("RTCNative")]
-        private static extern void receiveVideo(long uid, byte[] data, int dataLength, byte[] sps, int spsLength, byte[] pps, int ppsLength, long flags, long timestamp, long seq, int facing);
-
-        [DllImport("RTCNative")]
-        private static extern void cleanRTC();
-
-        [DllImport("RTCNative")]
-        internal static extern void unsubscribeVideo(long uid);
-
 #endif
 
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
@@ -418,11 +418,6 @@ namespace com.fpnn.rtm
 
         public static bool SetActiveRoomId(Int64 roomId)
         { 
-            RTCEngine.InitVoice();
-            RTCEngine.OpenVoicePlay();
-            RTCEngine.CloseMicroPhone();
-
-
             lock (interLocker)
             {
                 if (rtcClient == null)
@@ -430,6 +425,10 @@ namespace com.fpnn.rtm
                 if (roomId != -1 && rtcClient.IsInRTCRoom(roomId) == false)
                     return false;
                 activeRoomId = roomId;
+
+                RTCEngine.InitVoice();
+                RTCEngine.OpenVoicePlay();
+                RTCEngine.CloseMicroPhone();
                 return true;
             }
         }
@@ -466,10 +465,10 @@ namespace com.fpnn.rtm
                     return;
                 if (client == null || client != rtcClient)
                     return;
-                activeRoomId = -1;
                 CloseMicroPhone();
                 CloseVoicePlay();
                 CleanRTC();
+                activeRoomId = -1;
             }
         }
 
@@ -575,21 +574,24 @@ namespace com.fpnn.rtm
 
         public static void InitVoice()
         {
-#if UNITY_IOS || UNITY_ANDROID
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+#elif UNITY_IOS || UNITY_ANDROID
             initVoice();
 #endif
         }
 
         public static void InitVideo(long uid)
         {
-#if UNITY_IOS || UNITY_ANDROID
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+#elif UNITY_IOS || UNITY_ANDROID
             initVideo(uid, VideoCallback);
 #endif
         }
 
         private static void CleanRTC()
         {
-#if UNITY_IOS || UNITY_ANDROID
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+#elif UNITY_IOS || UNITY_ANDROID
             cleanRTC();
 #endif
         }
@@ -691,7 +693,8 @@ namespace com.fpnn.rtm
         public static void OpenCamera()
         {
             camera = true;
-#if UNITY_IOS || UNITY_ANDROID
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+#elif UNITY_IOS || UNITY_ANDROID
             RTCEngine.openCamera();
 #endif
         }
@@ -699,7 +702,8 @@ namespace com.fpnn.rtm
         public static void CloseCamera()
         {
             camera = false;
-#if UNITY_IOS || UNITY_ANDROID
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+#elif UNITY_IOS || UNITY_ANDROID
             RTCEngine.closeCamera();
 #endif
         }
@@ -709,7 +713,8 @@ namespace com.fpnn.rtm
             if (!camera)
                 return;
             frontCamera = !frontCamera;
-#if UNITY_IOS || UNITY_ANDROID
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+#elif UNITY_IOS || UNITY_ANDROID
             RTCEngine.switchCamera(frontCamera);
 #endif
         }
@@ -721,7 +726,8 @@ namespace com.fpnn.rtm
 
         public static void UnsubscribeVideo(long uid)
         {
-#if UNITY_IOS || UNITY_ANDROID
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+#elif UNITY_IOS || UNITY_ANDROID
             unsubscribeVideo(uid);
 #endif
         }
@@ -801,7 +807,8 @@ namespace com.fpnn.rtm
                 return;
             if (rtcClient == null)
                 return;
-            UDPClient client = rtcClient.GetRTCClient();
+            //UDPClient client = rtcClient.GetRTCClient();
+            TCPClient client = rtcClient.GetRTCClient();
             if (client == null)
                 return;
             if (client.ConnectionID() != connectionId)
@@ -818,12 +825,14 @@ namespace com.fpnn.rtm
 
         public static void ReceiveVideo(UInt64 connectionId, long uid, long seq, long flags, long timeStamp, long rotation, long version, int facing, int captureLevel, byte[] data, byte[] sps, byte[] pps)
         {
-#if UNITY_IOS || UNITY_ANDROID
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+#elif UNITY_IOS || UNITY_ANDROID
             if (StatusMonitor.IsBackground())
                 return;
             if (rtcClient == null)
                 return;
-            UDPClient client = rtcClient.GetRTCClient();
+            //UDPClient client = rtcClient.GetRTCClient();
+            TCPClient client = rtcClient.GetRTCClient();
             if (client == null)
                 return;
             if (client.ConnectionID() != connectionId)
@@ -857,7 +866,8 @@ namespace com.fpnn.rtm
 
         public static void GetVideoFrame(long uid, IntPtr data, ref int size, ref bool facing)
         {
-#if UNITY_IOS || UNITY_ANDROID
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+#elif UNITY_IOS || UNITY_ANDROID
             getVideoFrame(uid, data, ref size, ref facing);
 #endif
         }
