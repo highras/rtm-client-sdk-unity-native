@@ -47,23 +47,23 @@ namespace com.fpnn.rtm
 
             Int64 roomId = GetActiveRoomId();
             if (roomId != -1 && client.IsInRTCRoom(roomId))
-            { 
+            {
                 byte[] payload = new byte[length];
                 Marshal.Copy(data, payload, 0, length);
                 //Debug.Log("VoiceCallback payload.length=" + payload.Length);
                 bool status = client.Voice(payload);
                 //if (status == false)
-                    //Debug.Log("client.Voice false");
+                //Debug.Log("client.Voice false");
                 return;
             }
             Int64 callId = GetP2PCallId();
             if (callId != -1)
-            { 
+            {
                 byte[] payload = new byte[length];
                 Marshal.Copy(data, payload, 0, length);
                 bool status = client.VoiceP2P(payload);
                 //if (status == false)
-                    //Debug.Log("client.Voice false");
+                //Debug.Log("client.Voice false");
                 return;
             }
         }
@@ -113,7 +113,7 @@ namespace com.fpnn.rtm
         delegate bool ActiveRoomCallbackDelegate();
         [MonoPInvokeCallback(typeof(ActiveRoomCallbackDelegate))]
         private static bool ActiveRoomCallback()
-        { 
+        {
             lock (interLocker)
             {
                 if (p2pCallID != -1)
@@ -135,6 +135,16 @@ namespace com.fpnn.rtm
             string payload = Marshal.PtrToStringAnsi(log);
             Debug.Log(payload);
         }
+
+        public delegate void PermissionCallbackDelegate(bool microphone, bool camera);
+        [MonoPInvokeCallback(typeof(PermissionCallbackDelegate))]
+        private static void PermissionCallback(bool microphone, bool camera)
+        {
+            RTMControlCenter.callbackQueue.PostAction(() => {
+                internalPermissionCallback?.Invoke(microphone, camera);
+            });
+        }
+        private static Action<bool, bool> internalPermissionCallback;
 #if (UNITY_ANDROID || UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
         [DllImport("RTCNative")]
         private static extern void initRTCEngine(VoiceCallbackDelegate callback, ActiveRoomCallbackDelegate activeRoomCallback, int channelNum);
@@ -227,7 +237,7 @@ namespace com.fpnn.rtm
         internal static extern void unsubscribeVideo(long uid);
 
         [DllImport("__Internal")]
-        internal static extern void requirePermission(bool requireCamera);
+        internal static extern void requirePermission(bool microphone, bool camera, PermissionCallbackDelegate callback);
 #else
 #endif
 
@@ -273,6 +283,76 @@ namespace com.fpnn.rtm
                 }
             }
         }
+
+        class AndroidPermissionCallback
+        {
+            bool microphone = false;
+            bool camera = false;
+            internal bool requireMicrophone = false;
+            internal bool requireCamera = false;
+            bool microphoneFinish = false;
+            bool cameraFinish = false;
+            internal Action<bool, bool> callback;
+
+            void CheckFinish()
+            {
+                if (requireMicrophone && !microphoneFinish)
+                    return;
+                if (requireCamera && !cameraFinish)
+                    return;
+                RTMControlCenter.callbackQueue.PostAction(()=>
+                { 
+                    callback?.Invoke(microphone, camera);
+                });
+            }
+            internal void PermissionCallbacks_PermissionDeniedAndDontAskAgain(string permissionName)
+            {
+                if (permissionName == "android.permission.RECORD_AUDIO")
+                { 
+                    microphone = false;
+                    microphoneFinish = true;
+                }
+                else if (permissionName == "android.permission.CAMERA")
+                { 
+                    camera = false;
+                    cameraFinish = true;
+                }
+                CheckFinish();
+            }
+
+            internal void PermissionCallbacks_PermissionGranted(string permissionName)
+            {
+                if (permissionName == "android.permission.RECORD_AUDIO")
+                { 
+                    microphone = true;
+                    microphoneFinish = true;
+                }
+                else if (permissionName == "android.permission.CAMERA")
+                { 
+                    camera = true;
+                    cameraFinish = true;
+                }
+                CheckFinish();
+            }
+
+            internal void PermissionCallbacks_PermissionDenied(string permissionName)
+            {
+                if (permissionName == "android.permission.RECORD_AUDIO")
+                { 
+                    microphone = false;
+                    microphoneFinish = true;
+                }
+                else if (permissionName == "android.permission.CAMERA")
+                { 
+                    camera = false;
+                    cameraFinish = true;
+                }
+                CheckFinish();
+            }
+        }
+
+
+
 #endif
 
         private volatile static bool running = false;
@@ -521,8 +601,47 @@ namespace com.fpnn.rtm
             }
         }
 
+        public static void RequirePermission(bool requireMicrophone, bool requireCamera, Action<bool, bool> callback)
+        {
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+#elif UNITY_ANDROID
+            if (!requireMicrophone && !requireCamera)
+            { 
+                RTMControlCenter.callbackQueue.PostAction(() => {
+                    callback?.Invoke(false, false);
+                });
+            }
+            else
+            {
+                var callbacks = new PermissionCallbacks();
+                var androidPermission = new AndroidPermissionCallback();
+                callbacks.PermissionDenied += androidPermission.PermissionCallbacks_PermissionDenied;
+                callbacks.PermissionGranted += androidPermission.PermissionCallbacks_PermissionGranted;
+                callbacks.PermissionDeniedAndDontAskAgain += androidPermission.PermissionCallbacks_PermissionDeniedAndDontAskAgain;
+                androidPermission.callback = callback;
+                androidPermission.requireMicrophone = requireMicrophone;
+                androidPermission.requireCamera = requireCamera;
 
-        public static void Init(bool requireCamera = false)
+                if (requireMicrophone)
+                {
+                    if (requireCamera)
+                        Permission.RequestUserPermissions(new string[] { Permission.Microphone, Permission.Camera }, callbacks);
+                    else
+                        Permission.RequestUserPermissions(new string[] { Permission.Microphone }, callbacks);
+                }
+                else if (requireCamera)
+                {
+                    Permission.RequestUserPermissions(new string[] { Permission.Camera }, callbacks);
+                }
+            }
+
+#elif UNITY_IOS
+            internalPermissionCallback = callback;
+            requirePermission(requireMicrophone, requireCamera, PermissionCallback);
+#endif
+        }
+
+        public static void Init(bool requirePermission = true, bool requireCamera = false)
         {
 #if RTM_DISABLE_RTC
             Assert.IsTrue(false, "RTC is disabled, please remove the RTM_DISABLE_RTC define in \"Scripting Define Symbols\"");
@@ -530,19 +649,7 @@ namespace com.fpnn.rtm
             if (running)
                 return;
 #if UNITY_ANDROID
-            bool microphone = false;
-            bool camera = false;
-            if (!Permission.HasUserAuthorizedPermission(Permission.Microphone))
-                microphone = true;
-            if (!Permission.HasUserAuthorizedPermission(Permission.Microphone) && requireCamera)
-                camera = true;
-            if (microphone && camera)
-                Permission.RequestUserPermissions(new string[] { Permission.Microphone, Permission.Camera});
-            else if (microphone)
-                Permission.RequestUserPermissions(new string[] { Permission.Microphone});
-            else if (camera)
-                Permission.RequestUserPermissions(new string[] { Permission.Camera});
-        
+       
             var version = new AndroidJavaClass("android.os.Build$VERSION");
             int osVersion = version.GetStatic<int>("SDK_INT");
             AndroidJavaObject currentActivity = new AndroidJavaClass("com.unity3d.player.UnityPlayer").GetStatic<AndroidJavaObject>("currentActivity");
@@ -558,10 +665,12 @@ namespace com.fpnn.rtm
 #elif (UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
             initRTCEngine(VoiceCallback, ActiveRoomCallback, 1);
 #elif UNITY_IOS
-            requirePermission(requireCamera);
+            if (requirePermission)
+                RequirePermission(true, requireCamera, null);
             initRTCEngine(VoiceCallback, ActiveRoomCallback, 1);
 #elif UNITY_ANDROID
-            //initRTCEngine(VoiceCallback, osVersion, 1);
+            if (requirePermission)
+                RequirePermission(true, requireCamera, null);
             initRTCEngine(application, VoiceCallback, 1);
 #endif
 
