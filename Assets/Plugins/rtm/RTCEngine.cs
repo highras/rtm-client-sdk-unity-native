@@ -17,6 +17,13 @@ namespace com.fpnn.rtm
         TALKING,
     }
 
+    public enum PERMISSION_STATUS
+    { 
+        GRANTED,
+        DENIED,
+        DENIEDANDDONTASKAGAIN,
+    }
+
     class VideoBuffer
     {
         public long uid;
@@ -141,10 +148,12 @@ namespace com.fpnn.rtm
         private static void PermissionCallback(bool microphone, bool camera)
         {
             RTMControlCenter.callbackQueue.PostAction(() => {
-                internalPermissionCallback?.Invoke(microphone, camera);
+                PERMISSION_STATUS microphonePermission = microphone ? PERMISSION_STATUS.GRANTED : PERMISSION_STATUS.DENIEDANDDONTASKAGAIN;
+                PERMISSION_STATUS cameraPermission = camera ? PERMISSION_STATUS.GRANTED : PERMISSION_STATUS.DENIEDANDDONTASKAGAIN;
+                internalPermissionCallback?.Invoke(microphonePermission, cameraPermission);
             });
         }
-        private static Action<bool, bool> internalPermissionCallback;
+        private static Action<PERMISSION_STATUS, PERMISSION_STATUS> internalPermissionCallback;
 #if (UNITY_ANDROID || UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
         [DllImport("RTCNative")]
         private static extern void initRTCEngine(VoiceCallbackDelegate callback, ActiveRoomCallbackDelegate activeRoomCallback, int channelNum);
@@ -286,13 +295,13 @@ namespace com.fpnn.rtm
 
         class AndroidPermissionCallback
         {
-            bool microphone = false;
-            bool camera = false;
+            PERMISSION_STATUS microphone = PERMISSION_STATUS.DENIEDANDDONTASKAGAIN;
+            PERMISSION_STATUS camera = PERMISSION_STATUS.DENIEDANDDONTASKAGAIN;
             internal bool requireMicrophone = false;
             internal bool requireCamera = false;
             bool microphoneFinish = false;
             bool cameraFinish = false;
-            internal Action<bool, bool> callback;
+            internal Action<PERMISSION_STATUS, PERMISSION_STATUS> callback;
 
             void CheckFinish()
             {
@@ -309,12 +318,12 @@ namespace com.fpnn.rtm
             {
                 if (permissionName == "android.permission.RECORD_AUDIO")
                 { 
-                    microphone = false;
+                    microphone = PERMISSION_STATUS.DENIEDANDDONTASKAGAIN;
                     microphoneFinish = true;
                 }
                 else if (permissionName == "android.permission.CAMERA")
                 { 
-                    camera = false;
+                    camera = PERMISSION_STATUS.DENIEDANDDONTASKAGAIN;
                     cameraFinish = true;
                 }
                 CheckFinish();
@@ -324,12 +333,12 @@ namespace com.fpnn.rtm
             {
                 if (permissionName == "android.permission.RECORD_AUDIO")
                 { 
-                    microphone = true;
+                    microphone = PERMISSION_STATUS.GRANTED;
                     microphoneFinish = true;
                 }
                 else if (permissionName == "android.permission.CAMERA")
                 { 
-                    camera = true;
+                    camera = PERMISSION_STATUS.GRANTED;
                     cameraFinish = true;
                 }
                 CheckFinish();
@@ -339,12 +348,12 @@ namespace com.fpnn.rtm
             {
                 if (permissionName == "android.permission.RECORD_AUDIO")
                 { 
-                    microphone = false;
+                    microphone = PERMISSION_STATUS.DENIED;
                     microphoneFinish = true;
                 }
                 else if (permissionName == "android.permission.CAMERA")
                 { 
-                    camera = false;
+                    camera = PERMISSION_STATUS.DENIED;
                     cameraFinish = true;
                 }
                 CheckFinish();
@@ -601,14 +610,14 @@ namespace com.fpnn.rtm
             }
         }
 
-        public static void RequirePermission(bool requireMicrophone, bool requireCamera, Action<bool, bool> callback)
+        public static void RequirePermission(bool requireMicrophone, bool requireCamera, Action<PERMISSION_STATUS, PERMISSION_STATUS> callback)
         {
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
 #elif UNITY_ANDROID
             if (!requireMicrophone && !requireCamera)
             { 
                 RTMControlCenter.callbackQueue.PostAction(() => {
-                    callback?.Invoke(false, false);
+                    callback?.Invoke(PERMISSION_STATUS.DENIEDANDDONTASKAGAIN, PERMISSION_STATUS.DENIEDANDDONTASKAGAIN);
                 });
             }
             else
@@ -648,14 +657,7 @@ namespace com.fpnn.rtm
 #endif
             if (running)
                 return;
-#if UNITY_ANDROID
-       
-            var version = new AndroidJavaClass("android.os.Build$VERSION");
-            int osVersion = version.GetStatic<int>("SDK_INT");
-            AndroidJavaObject currentActivity = new AndroidJavaClass("com.unity3d.player.UnityPlayer").GetStatic<AndroidJavaObject>("currentActivity");
-            IntPtr application = currentActivity.Call<AndroidJavaObject>("getApplicationContext").GetRawObject();
-            SetLogger(Log);
-#endif
+
             running = true;
             timeOffsetBuffer = new Queue();
 
@@ -669,6 +671,12 @@ namespace com.fpnn.rtm
                 RequirePermission(true, requireCamera, null);
             initRTCEngine(VoiceCallback, ActiveRoomCallback, 1);
 #elif UNITY_ANDROID
+            var version = new AndroidJavaClass("android.os.Build$VERSION");
+            int osVersion = version.GetStatic<int>("SDK_INT");
+            AndroidJavaObject currentActivity = new AndroidJavaClass("com.unity3d.player.UnityPlayer").GetStatic<AndroidJavaObject>("currentActivity");
+            IntPtr application = currentActivity.Call<AndroidJavaObject>("getApplicationContext").GetRawObject();
+            SetLogger(Log);
+
             if (requirePermission)
                 RequirePermission(true, requireCamera, null);
             initRTCEngine(application, VoiceCallback, 1);
@@ -923,7 +931,7 @@ namespace com.fpnn.rtm
             if (client.ConnectionID() != connectionId)
                 return;
             Int64 now = ClientEngine.GetCurrentMilliseconds();
-            if (now - timeOffset - timeStamp > 1500)
+            if (now - timeOffset - timeStamp > 3000)
             {
                 //Debug.Log("timeout = " + (now - timeOffset - timeStamp));
                 return;
