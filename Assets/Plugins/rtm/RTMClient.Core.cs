@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using com.fpnn.proto;
 using UnityEngine;
@@ -411,7 +412,7 @@ namespace com.fpnn.rtm
                     }
                 }
 
-                foreach (long roomId in rtcRoomList)
+                foreach (long roomId in rtcRoomList.ToList())
                     RTCEngine.ExitRTCRoom(this, roomId);
                 rtcRoomList.Clear();
                 RTCEngine.CloseP2PRTC();
@@ -917,7 +918,7 @@ namespace com.fpnn.rtm
             }
 
             rtmGate.Close();
-            foreach (long roomId in rtcRoomList)
+            foreach (long roomId in rtcRoomList.ToList())
                 RTCEngine.ExitRTCRoom(this, roomId);
             rtcRoomList.Clear();
             RTCEngine.CloseP2PRTC();
