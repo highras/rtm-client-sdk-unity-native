@@ -42,17 +42,10 @@ namespace com.fpnn.rtm
         {
             if (RTCEngine.GetActiveRoomId() == -1 && RTCEngine.GetP2PCallId() == -1)
                 return;
-            if (headsetType == 0) //蓝牙
+            ClientEngine.RunTask(() =>
             {
-                Thread thread = new Thread(() =>
-                {
-                    Thread.Sleep(1500);
-                    RTCEngine.headsetStat();
-                });
-                thread.Start();
-                return;
-            }
-            RTCEngine.headsetStat();
+                RTCEngine.headsetStat(headsetType);
+            });
         }
 
         static AndroidJavaObject AndroidNativeManager= null;
@@ -171,8 +164,14 @@ namespace com.fpnn.rtm
                 {
                     _isBackground = true;
 #if UNITY_ANDROID
-                    RTCEngine.setBackground(true);
-                    //RTCEngine.Pause();
+                    if (RTCEngine.GetActiveRoomId() != -1 || RTCEngine.GetP2PCallId() != -1)
+                    {
+                        ClientEngine.RunTask(() =>
+                        {
+                            RTCEngine.setBackground(true);
+                            //RTCEngine.Pause();
+                        });
+                    }
 #endif
                 }
             }
@@ -183,8 +182,13 @@ namespace com.fpnn.rtm
                     _isBackground = false;
 #if UNITY_ANDROID
                     if (RTCEngine.GetActiveRoomId() != -1 || RTCEngine.GetP2PCallId() != -1)
-                        RTCEngine.setBackground(false);
-                    //RTCEngine.Resume();
+                    {
+                        ClientEngine.RunTask(() =>
+                        {
+                            RTCEngine.setBackground(false);
+                            //RTCEngine.Resume();
+                        });
+                    }
 #endif
                 }
             }

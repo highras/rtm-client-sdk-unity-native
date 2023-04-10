@@ -416,7 +416,7 @@ namespace com.fpnn
             }
         }
 
-        public void SetQuestProcessor(IQuestProcessor processor)
+        virtual public void SetQuestProcessor(IQuestProcessor processor)
         {
             lock (interLocker)
             {

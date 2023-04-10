@@ -70,5 +70,62 @@ namespace com.fpnn.rtm
 
             return answer.ErrorCode();
         }
+
+        private bool GetRTCEndpoint(Action<string, int> callback, int timeout = 0)
+        {
+            Client client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("getRTCGateEndpoint");
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+                string endpoint = null;
+
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                {
+                    try
+                    {
+                        endpoint = answer.Want<string>("endpoint");
+                    }
+                    catch (Exception)
+                    {
+                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+                    }
+                }
+                callback(endpoint, errorCode);
+            }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        public int GetRTCEndpoint(out string endpoint, int timeout = 0)
+        {
+            endpoint = null;
+            Client client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("getRTCGateEndpoint");
+
+            Answer answer = client.SendQuest(quest, timeout);
+            endpoint = answer.Want<string>("endpoint");
+
+            return answer.ErrorCode();
+        }
     }
 }

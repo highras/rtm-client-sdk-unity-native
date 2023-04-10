@@ -7,7 +7,7 @@ using AOT;
 
 namespace com.fpnn.rtm
 {
-    public class AudioRecorderNative : Singleton<AudioRecorderNative>
+    static public class AudioRecorderNative
     {
         public interface IAudioRecorderListener
         {
@@ -45,6 +45,8 @@ namespace com.fpnn.rtm
         [MonoPInvokeCallback(typeof(StartRecordCallbackDelegate))]
         private static void StartRecordCallback(bool success)
         {
+            if (success == false)
+                recording = true;
             if (audioRecorderListener != null)
                 audioRecorderListener.RecordStart(success);
         }
@@ -127,6 +129,8 @@ namespace com.fpnn.rtm
 
             public void startRecord(bool success, string errorMsg)
             {
+                if (success == false)
+                    recording = false;
                 if (AudioRecorderNative.audioRecorderListener != null)
                     AudioRecorderNative.audioRecorderListener.RecordStart(success);
             }
@@ -174,7 +178,7 @@ namespace com.fpnn.rtm
         internal static extern void destroy();
 #endif
 
-        public void Init(string language, IAudioRecorderListener listener)
+        static public void Init(string language, IAudioRecorderListener listener)
         {
             AudioRecorderNative.language = language;
             audioRecorderListener = listener;
@@ -194,12 +198,12 @@ namespace com.fpnn.rtm
 #endif
         }
 
-        public bool IsRecording()
+        static public bool IsRecording()
         {
             return recording;
         }
 
-        public void StartRecord()
+        static public void StartRecord()
         {
             recording = true;
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
@@ -212,7 +216,7 @@ namespace com.fpnn.rtm
 #endif
         }
 
-        public void StopRecord()
+        static public void StopRecord()
         {
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
             stopRecord(StopRecordCallback);
@@ -236,13 +240,13 @@ namespace com.fpnn.rtm
 #endif
         }
 
-        public void CancelRecord()
+        static public void CancelRecord()
         {
             cancelRecord = true;
             StopRecord();
         }
 
-        public void Play(RTMAudioData data)
+        static public void Play(RTMAudioData data)
         {
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
             byte[] wavBuffer = AudioConvert.ConvertToWav(data.Audio);
@@ -257,7 +261,7 @@ namespace com.fpnn.rtm
 #endif
         }
 
-        public void StopPlay()
+        static public void StopPlay()
         {
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
             stopPlay();

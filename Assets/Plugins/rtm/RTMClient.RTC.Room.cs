@@ -38,34 +38,48 @@ namespace com.fpnn.rtm
                 });
                 return;
             }
-            bool status = createRTCRoom((long rid, string token, int errorCode) =>
+            bool status = GetRTCEndpoint((string endpoint, int errorCode) =>
             {
                 if (errorCode != fpnn.ErrorCode.FPNN_EC_OK)
                 {
                     callback(0, errorCode);
                     return;
                 }
-
-                status = enterRTCRoom((bool microphone, HashSet<long> uids, HashSet<long> administrators, long owner, int errorCode2) => {
-                    if (errorCode != fpnn.ErrorCode.FPNN_EC_OK)
+                BuildRTCGateClient(endpoint);
+                status = createRTCRoom((long rid, string token, int errorCode2) =>
+                {
+                    if (errorCode2 != fpnn.ErrorCode.FPNN_EC_OK)
                     {
                         callback(0, errorCode2);
                         return;
                     }
-                    if (roomType == RTCRoomType.VideoRoom)
-                        RTCEngine.InitVideo(uid);
-                    lock (rtcInterLocker)
-                    { 
-                        rtcRoomList.Add(roomId);
-                    }
-                    callback(rid, fpnn.ErrorCode.FPNN_EC_OK);
-                }, (int)projectId, uid, roomId, token, timeout);
+
+                    status = enterRTCRoom((bool microphone, HashSet<long> uids, HashSet<long> administrators, long owner, int errorCode3) => {
+                        if (errorCode3 != fpnn.ErrorCode.FPNN_EC_OK)
+                        {
+                            callback(0, errorCode3);
+                            return;
+                        }
+                        if (roomType == RTCRoomType.VideoRoom)
+                            RTCEngine.InitVideo(uid);
+                        lock (rtcInterLocker)
+                        { 
+                            rtcRoomList.Add(roomId);
+                        }
+                        callback(rid, fpnn.ErrorCode.FPNN_EC_OK);
+                    }, (int)projectId, uid, roomId, token, timeout);
+                    if (!status && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                        ClientEngine.RunTask(() =>
+                        {
+                            callback(0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                        });
+                }, roomId, roomType, timeout);
                 if (!status && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
                     ClientEngine.RunTask(() =>
                     {
                         callback(0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
                     });
-            }, roomId, roomType, timeout);
+                });
             if (!status && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
                 ClientEngine.RunTask(() =>
                 {
@@ -77,11 +91,15 @@ namespace com.fpnn.rtm
         {
             if (RTCEngine.GetP2PCallId() != -1)
                 return ErrorCode.RTC_EC_ON_P2P;
-            int errorCode = createRTCRoom(out string token, roomId, roomType, timeout);
+            int errorCode = GetRTCEndpoint(out string endpoint);
             if (errorCode != fpnn.ErrorCode.FPNN_EC_OK)
                 return errorCode;
-            int errorCode2 = enterRTCRoom((int)projectId, uid, roomId, token, out _, out _, out _, out _, timeout);
-            if (errorCode2 == fpnn.ErrorCode.FPNN_EC_OK)
+            BuildRTCGateClient(endpoint);
+            int errorCode2 = createRTCRoom(out string token, roomId, roomType, timeout);
+            if (errorCode2 != fpnn.ErrorCode.FPNN_EC_OK)
+                return errorCode2;
+            int errorCode3 = enterRTCRoom((int)projectId, uid, roomId, token, out _, out _, out _, out _, timeout);
+            if (errorCode3 == fpnn.ErrorCode.FPNN_EC_OK)
             {
                 if (roomType == RTCRoomType.VideoRoom)
                     RTCEngine.InitVideo(uid);
@@ -91,7 +109,7 @@ namespace com.fpnn.rtm
                     rtcRoomList.Add(roomId);
                 }
             }
-            return errorCode2;
+            return errorCode3;
         }
 
         public void EnterRTCRoom(Action<long, RTCRoomType, int> callback, long roomId, string password = null, string nickName = null,int timeout = 0)
@@ -104,35 +122,44 @@ namespace com.fpnn.rtm
                 });
                 return;
             }
-
-            bool status = enterRTCRoom((string token, RTCRoomType roomType, int errorCode) =>
-            {
+            bool status = GetRTCEndpoint((string endpoint, int errorCode) => {
                 if (errorCode != fpnn.ErrorCode.FPNN_EC_OK)
                 {
                     callback(0, RTCRoomType.InvalidRoom, errorCode);
                     return;
                 }
-                status = enterRTCRoom((bool microphone, HashSet<long> uids, HashSet<long> administrators, long owner, int errorCode2) => {
+                BuildRTCGateClient(endpoint);
+                status = enterRTCRoom((string token, RTCRoomType roomType, int errorCode2) =>
+                {
                     if (errorCode2 != fpnn.ErrorCode.FPNN_EC_OK)
                     {
                         callback(0, RTCRoomType.InvalidRoom, errorCode2);
                         return;
                     }
-                    if (roomType == RTCRoomType.VideoRoom)
-                        RTCEngine.InitVideo(uid);
-
-                    lock (rtcInterLocker)
-                    {
-                        rtcRoomList.Add(roomId);
-                    }
-                    callback(roomId, roomType, fpnn.ErrorCode.FPNN_EC_OK);
-                }, (int)projectId, uid, roomId, token, timeout);
+                    status = enterRTCRoom((bool microphone, HashSet<long> uids, HashSet<long> administrators, long owner, int errorCode3) => {
+                        if (errorCode3 != fpnn.ErrorCode.FPNN_EC_OK)
+                        {
+                            callback(0, RTCRoomType.InvalidRoom, errorCode3);
+                            return;
+                        }
+                        if (roomType == RTCRoomType.VideoRoom)
+                            RTCEngine.InitVideo(uid);
+    
+                        lock (rtcInterLocker)
+                        {
+                            rtcRoomList.Add(roomId);
+                        }
+                        callback(roomId, roomType, fpnn.ErrorCode.FPNN_EC_OK);
+                    }, (int)projectId, uid, roomId, token, timeout);
+                    if (!status && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                        callback(0, RTCRoomType.InvalidRoom, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                }, roomId, password, timeout);
                 if (!status && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
                     ClientEngine.RunTask(() =>
                     {
                         callback(0, RTCRoomType.InvalidRoom, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
                     });
-            }, roomId, password, timeout);
+            });
             if (!status && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
                 ClientEngine.RunTask(() =>
                 {
@@ -145,12 +172,15 @@ namespace com.fpnn.rtm
             roomType = RTCRoomType.InvalidRoom;
             if (RTCEngine.GetP2PCallId() != -1)
                 return ErrorCode.RTC_EC_ON_P2P;
- 
-            int errorCode = enterRTCRoom(out string token, out roomType, roomId, timeout);
+            int errorCode = GetRTCEndpoint(out string endpoint);
             if (errorCode != fpnn.ErrorCode.FPNN_EC_OK)
                 return errorCode;
-            int errorCode2 = enterRTCRoom((int)projectId, uid, roomId, token, out _, out _, out _, out _, timeout);
-            if (errorCode2 == fpnn.ErrorCode.FPNN_EC_OK)
+            BuildRTCGateClient(endpoint);
+            int errorCode2 = enterRTCRoom(out string token, out roomType, roomId, timeout);
+            if (errorCode2 != fpnn.ErrorCode.FPNN_EC_OK)
+                return errorCode2;
+            int errorCode3 = enterRTCRoom((int)projectId, uid, roomId, token, out _, out _, out _, out _, timeout);
+            if (errorCode3 == fpnn.ErrorCode.FPNN_EC_OK)
             { 
                 if (roomType == RTCRoomType.VideoRoom)
                     RTCEngine.InitVideo(uid);
@@ -160,7 +190,7 @@ namespace com.fpnn.rtm
                     rtcRoomList.Add(roomId);
                 }
             }
-            return errorCode2;
+            return errorCode3;
         }
 
         public void ExitRTCRoom(Action<int> callback, long roomId, int timeout = 0)

@@ -22,6 +22,8 @@ namespace com.fpnn
         [MonoPInvokeCallback(typeof(ConnectionClosedCallback))]
         public static void ClosedCallback(IntPtr client, UInt64 connectionId, string endpoint, bool causedByError)
         {
+            if (client == IntPtr.Zero)
+                return;
             GCHandle gcHandler = GCHandle.FromIntPtr(client);
             TCPClient clientInterface = (TCPClient)gcHandler.Target;
             clientInterface.Closed(connectionId, endpoint, causedByError);
@@ -58,7 +60,7 @@ namespace com.fpnn
             return new TCPClient(host, port, autoConnect);
         }
 
-        new public void SetQuestProcessor(IQuestProcessor processor)
+        override public void SetQuestProcessor(IQuestProcessor processor)
         {
             base.SetQuestProcessor(processor);
             lock (interLocker)

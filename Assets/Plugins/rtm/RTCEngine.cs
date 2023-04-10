@@ -261,7 +261,7 @@ namespace com.fpnn.rtm
         //private static extern void initRTCEngine(IntPtr application, IntPtr focusObject, VoiceCallbackDelegate callback, int channelNum);
 
         [DllImport("RTCNative")]
-        public static extern void headsetStat();
+        public static extern void headsetStat(int headsetType);
 
         [DllImport("RTCNative")]
         internal static extern void setBackground(bool flag);
@@ -924,8 +924,7 @@ namespace com.fpnn.rtm
                 return;
             if (rtcClient == null)
                 return;
-            //UDPClient client = rtcClient.GetRTCClient();
-            TCPClient client = rtcClient.GetRTCClient();
+            Client client = rtcClient.GetRTCClient();
             if (client == null)
                 return;
             if (client.ConnectionID() != connectionId)
@@ -948,8 +947,7 @@ namespace com.fpnn.rtm
                 return;
             if (rtcClient == null)
                 return;
-            //UDPClient client = rtcClient.GetRTCClient();
-            TCPClient client = rtcClient.GetRTCClient();
+            Client client = rtcClient.GetRTCClient();
             if (client == null)
                 return;
             if (client.ConnectionID() != connectionId)

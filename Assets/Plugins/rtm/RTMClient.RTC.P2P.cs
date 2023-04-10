@@ -308,31 +308,54 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            bool status = acceptP2PRTC((int errorCode) => {
-                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+            bool status = GetRTCEndpoint((string endpoint, int errorCode) => { 
+                if (errorCode != fpnn.ErrorCode.FPNN_EC_OK)
                 {
-                    bool status2 = setP2PRequest((int errorCode2) =>
-                    {
-                        if (errorCode2 == fpnn.ErrorCode.FPNN_EC_OK)
-                        {
-                            RTCEngine.ClearP2PRequestTime();
-                            RTCEngine.OpenVoicePlay();
-                            RTCEngine.OpenMicroPhone();
-                            RTCEngine.InitVoice();
-                            if (type == RTCP2PType.Video)
-                                RTCEngine.InitVideo(uid);
-                            RTCEngine.SetP2PInfo(callID, peerUid, RTCP2P_STATE.TALKING);
-                        }
-                        else
-                        {
-                            callback(errorCode2);
-                        }
-
-                    }, (int)ProjectId, uid, type, peerUid, callID, timeout);
+                    callback(errorCode);
+                    return;
                 }
-                callback(errorCode);
-            }, callID, timeout);
-
+                BuildRTCGateClient(endpoint);
+                status = acceptP2PRTC((int errorCode2) => {
+                    if (errorCode2 == fpnn.ErrorCode.FPNN_EC_OK)
+                    {
+                        status = setP2PRequest((int errorCode3) =>
+                        {
+                            if (errorCode3 == fpnn.ErrorCode.FPNN_EC_OK)
+                            {
+                                RTCEngine.ClearP2PRequestTime();
+                                RTCEngine.InitVoice();
+                                if (type == RTCP2PType.Video)
+                                    RTCEngine.InitVideo(uid);
+ 
+                                RTCEngine.OpenVoicePlay();
+                                RTCEngine.OpenMicroPhone();
+                                RTCEngine.SetP2PInfo(callID, peerUid, RTCP2P_STATE.TALKING);
+                            }
+                            else
+                            {
+                                callback(errorCode3);
+                            }
+                        }, (int)ProjectId, uid, type, peerUid, callID, timeout);
+                        if (!status && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                            ClientEngine.RunTask(() =>
+                            {
+                                callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                            });
+                    }
+                    callback(errorCode2);
+                }, callID, timeout);
+                if (!status && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+            });
+            if (!status && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+ 
             return status;
         }
 
@@ -344,24 +367,24 @@ namespace com.fpnn.rtm
             if (!RTCEngine.IsP2PClosed())
                 return ErrorCode.RTC_EC_P2P_NOT_CLOSED;
 
-            int errorCode = acceptP2PRTC(callID, timeout);
-            if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
-            {
-                int errorCode2 = setP2PRequest((int)ProjectId, uid, type, peerUid, callID, timeout);
-                if (errorCode2 == fpnn.ErrorCode.FPNN_EC_OK)
-                {
-                    RTCEngine.ClearP2PRequestTime();
-                    RTCEngine.OpenVoicePlay();
-                    RTCEngine.OpenMicroPhone();
-                    RTCEngine.InitVoice();
-                    if (type == RTCP2PType.Video)
-                        RTCEngine.InitVideo(uid);
-                    RTCEngine.SetP2PInfo(callID, peerUid, RTCP2P_STATE.TALKING);
-                }
-                else
-                    return errorCode2;
-            }
-            return errorCode; 
+            int errorCode = GetRTCEndpoint(out string endpoint);
+            if (errorCode != fpnn.ErrorCode.FPNN_EC_OK)
+                return errorCode;
+            BuildRTCGateClient(endpoint);
+            int errorCode2 = acceptP2PRTC(callID, timeout);
+            if (errorCode2 != fpnn.ErrorCode.FPNN_EC_OK)
+                return errorCode2;
+            int errorCode3 = setP2PRequest((int)ProjectId, uid, type, peerUid, callID, timeout);
+            if (errorCode3 != fpnn.ErrorCode.FPNN_EC_OK)
+                return errorCode3;
+            RTCEngine.ClearP2PRequestTime();
+            RTCEngine.InitVoice();
+            if (type == RTCP2PType.Video)
+                RTCEngine.InitVideo(uid);
+            RTCEngine.OpenVoicePlay();
+            RTCEngine.OpenMicroPhone();
+            RTCEngine.SetP2PInfo(callID, peerUid, RTCP2P_STATE.TALKING);
+            return errorCode3;
         }
 
         private bool acceptP2PRTC(DoneDelegate callback, long callID, int timeout = 0)
@@ -462,8 +485,7 @@ namespace com.fpnn.rtm
 
         private bool setP2PRequest(DoneDelegate callback, int pid, long uid, RTCP2PType type, long peerUid, long callId, int timeout = 0)
         {
-            //UDPClient client = GetRTCClient();
-            TCPClient client = GetRTCClient();
+            Client client = GetRTCClient();
             if (client == null)
             {
                 if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
@@ -495,8 +517,7 @@ namespace com.fpnn.rtm
 
         private int setP2PRequest(int pid, long uid, RTCP2PType type, long peerUid, long callId, int timeout = 0)
         {
-            //UDPClient client = GetRTCClient();
-            TCPClient client = GetRTCClient();
+            Client client = GetRTCClient();
             if (client == null)
                 return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
 
@@ -568,24 +589,34 @@ namespace com.fpnn.rtm
             }
             else if (p2pEvent == RTCP2PEvent.Accpet)
             {
-                setP2PRequest((int errorCode) =>
-                {
-                    if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
-                    {
-                        RTCEngine.OpenVoicePlay();
-                        RTCEngine.OpenMicroPhone();
-                        RTCEngine.InitVoice();
-                        if (type == RTCP2PType.Video)
-                            RTCEngine.InitVideo(uid);
-                        RTCEngine.ClearP2PRequestTime();
-                        RTCEngine.SetP2PInfo(callId, peerUid, RTCP2P_STATE.TALKING);
-                        //RTCEngine.ClearP2PRequestClient();
-                    }
-                    else
+                GetRTCEndpoint((string endpoint, int errorCode) =>
+                { 
+                    if (errorCode != fpnn.ErrorCode.FPNN_EC_OK)
                     {
                         RTCEngine.CloseP2PRTC();
+                        return;
                     }
-                }, (int)ProjectId, uid, type, peerUid, callId, RTCEngine.rtcP2PTimeout);
+                    BuildRTCGateClient(endpoint);
+                    setP2PRequest((int errorCode2) =>
+                    {
+                        if (errorCode2 == fpnn.ErrorCode.FPNN_EC_OK)
+                        {
+                            RTCEngine.ClearP2PRequestTime();
+                            RTCEngine.InitVoice();
+                            if (type == RTCP2PType.Video)
+                                RTCEngine.InitVideo(uid);
+                            RTCEngine.OpenVoicePlay();
+                            RTCEngine.OpenMicroPhone();
+                            RTCEngine.SetP2PInfo(callId, peerUid, RTCP2P_STATE.TALKING);
+                            //RTCEngine.ClearP2PRequestClient();
+                        }
+                        else
+                        {
+                            RTCEngine.CloseP2PRTC();
+                        }
+                    }, (int)ProjectId, uid, type, peerUid, callId, RTCEngine.rtcP2PTimeout);
+                });
+                
             }
             else if (p2pEvent == RTCP2PEvent.Refuse)
             {
