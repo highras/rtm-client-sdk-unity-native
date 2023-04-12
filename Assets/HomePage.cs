@@ -13,7 +13,6 @@ public class HomePage : MonoBehaviour
 {
     public static long projectId = 11000002;
     public static string rtmEndpoint = "161.189.171.91:13321";
-    public static string rtcEndpoint = "161.189.171.91:13702";
     public static RTMClient client = null;
 
     public static string GetToken(long uid)
@@ -35,13 +34,13 @@ public class HomePage : MonoBehaviour
             errorRecorder = RerrorRecorderecorder
         };
         ClientEngine.Init(config);
-        RTCEngine.Init();
 
         RTMConfig rtmConfig = new RTMConfig()
         {
             defaultErrorRecorder = RerrorRecorderecorder
         };
         RTMControlCenter.Init(rtmConfig);
+        RTCEngine.Init();
     }
 
     void OnApplicationQuit()

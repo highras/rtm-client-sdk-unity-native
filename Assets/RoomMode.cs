@@ -149,7 +149,7 @@ public class RoomMode : MonoBehaviour
             }, activeRoomId);
         };
 
-        HomePage.client = RTMClient.getInstance(HomePage.rtmEndpoint, HomePage.rtcEndpoint, HomePage.projectId, uid, processor);
+        HomePage.client = RTMClient.getInstance(HomePage.rtmEndpoint, HomePage.projectId, uid, processor);
 
         bool status = HomePage.client.Login((long pid_, long uid_, bool ok, int errorCode) =>
         {

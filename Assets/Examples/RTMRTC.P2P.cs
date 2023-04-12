@@ -39,7 +39,7 @@ public class RTCP2P : Main.ITestCase
 
     static RTMClient LoginRTM(string rtmEndpoint, string rtcEndpoint, long pid, long uid, string token)
     {
-        RTMClient client = RTMClient.getInstance(rtmEndpoint, rtcEndpoint, pid, uid, new example.common.RTMExampleQuestProcessor());
+        RTMClient client = RTMClient.getInstance(rtmEndpoint,pid, uid, new example.common.RTMExampleQuestProcessor());
 
         int errorCode = client.Login(out bool ok, token);
         if (ok)

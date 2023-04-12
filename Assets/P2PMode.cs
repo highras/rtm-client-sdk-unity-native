@@ -74,7 +74,7 @@ public class P2PMode : MonoBehaviour
         processor.PushP2PRTCEventCallback = (long callId, long peerUid, RTCP2PType type, RTCP2PEvent p2pEvent) => {
             ReceiveEvent(callId, peerUid, type, p2pEvent); 
         };
-        HomePage.client = RTMClient.getInstance(HomePage.rtmEndpoint, HomePage.rtcEndpoint, HomePage.projectId, uid, processor);
+        HomePage.client = RTMClient.getInstance(HomePage.rtmEndpoint, HomePage.projectId, uid, processor);
 
         bool status = HomePage.client.Login((long pid_, long uid_, bool ok, int errorCode) =>
         {
