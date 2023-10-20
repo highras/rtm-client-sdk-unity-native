@@ -9,6 +9,11 @@ namespace com.fpnn.rtm
 {
     static public class AudioRecorderNative
     {
+        public enum AudioDeviceType
+        {
+            Microphone = 0,
+            Speaker = 1,
+        }
         public interface IAudioRecorderListener
         {
             void RecordStart(bool success);
@@ -46,7 +51,7 @@ namespace com.fpnn.rtm
         private static void StartRecordCallback(bool success)
         {
             if (success == false)
-                recording = true;
+                recording = false;
             if (audioRecorderListener != null)
                 audioRecorderListener.RecordStart(success);
         }
@@ -93,7 +98,38 @@ namespace com.fpnn.rtm
             audioRecorderListener?.PlayStart(success);
         }
 
-#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
+        delegate void AudioDeviceChangedDelegate(int type);
+        static bool microphoneChanged = false;
+        static bool speakerChanged = false;
+         [MonoPInvokeCallback(typeof(AudioDeviceChangedDelegate))]
+        private static void AudioDeviceChangedCallback(int type)
+        {
+            AudioDeviceType deviceType = (AudioDeviceType)type;
+            if (deviceType == AudioDeviceType.Microphone)
+                microphoneChanged = true;
+            if (deviceType == AudioDeviceType.Speaker)
+                speakerChanged = true;
+        }
+   
+        [DllImport("RTMNative")]
+        private static extern void initAudioDeviceChecker(AudioDeviceChangedDelegate callback);
+
+        [DllImport("RTMNative")]
+        private static extern void startRecord(VolumnCallbackDelegate callback, StartRecordCallbackDelegate startCallback, bool update);
+
+        [DllImport("RTMNative")]
+        private static extern void stopRecord(StopRecordCallbackDelegate callback);
+
+        [DllImport("RTMNative")]
+        private static extern void startPlay(byte[] data, int length, PlayFinishCallbackDelegate callback, PlayStartCallbackDelegate playStartCallback, bool update);
+
+        [DllImport("RTMNative")]
+        private static extern void stopPlay();
+
+        [DllImport("RTMNative")]
+        private static extern void playWithPath(byte[] data, int length, PlayFinishCallbackDelegate callback);
+#elif (UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
         [DllImport("RTMNative")]
         private static extern void startRecord(VolumnCallbackDelegate callback, StartRecordCallbackDelegate startCallback);
 
@@ -182,8 +218,10 @@ namespace com.fpnn.rtm
         {
             AudioRecorderNative.language = language;
             audioRecorderListener = listener;
-#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
-
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
+            initAudioDeviceChecker(AudioDeviceChangedCallback);
+#elif (UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+            
 #elif UNITY_ANDROID
             AndroidJavaClass jc = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
             AndroidJavaObject appconatext = jc.GetStatic<AndroidJavaObject>("currentActivity");
@@ -206,7 +244,10 @@ namespace com.fpnn.rtm
         static public void StartRecord()
         {
             recording = true;
-#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
+            startRecord(VolumnCallback, StartRecordCallback, microphoneChanged);
+            microphoneChanged = false;
+#elif (UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
             startRecord(VolumnCallback, StartRecordCallback);
 #elif UNITY_ANDROID
             if (AudioRecord != null)
@@ -222,6 +263,12 @@ namespace com.fpnn.rtm
             stopRecord(StopRecordCallback);
 #elif UNITY_ANDROID
             AndroidJavaObject audio = AudioRecord.Call<AndroidJavaObject>("stopRecord");
+            if (audio == null)
+            {
+                if (audioRecorderListener != null)
+                    audioRecorderListener.OnRecord(null);
+                return;
+            }
             int duration = audio.Get<int>("duration");
             byte[] audioData = audio.Get<byte[]>("audioData");
             //byte[] audioData = (byte[])(Array)audio.Get<sbyte[]>("audioData");
@@ -250,7 +297,8 @@ namespace com.fpnn.rtm
         {
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
             byte[] wavBuffer = AudioConvert.ConvertToWav(data.Audio);
-            startPlay(wavBuffer, wavBuffer.Length, PlayFinishCallback, PlayStartCallback);
+            startPlay(wavBuffer, wavBuffer.Length, PlayFinishCallback, PlayStartCallback, speakerChanged);
+            speakerChanged = false;
 #elif (UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
             startPlay(data.Audio, data.Audio.Length, PlayFinishCallback, PlayStartCallback);
 #elif UNITY_ANDROID

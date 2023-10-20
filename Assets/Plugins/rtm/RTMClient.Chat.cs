@@ -9,122 +9,122 @@ namespace com.fpnn.rtm
         //===========================[ Sending Chat ]=========================//
         public bool SendChat(MessageIdDelegate callback, long uid, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendMessage(uid, (byte)MessageType.Chat, message, attrs, callback, timeout);
+            return InternalSendMessage(uid, (byte)MessageType.Chat, message, attrs, callback, 0, timeout);
         }
 
         public int SendChat(out long messageId, long uid, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendMessage(out messageId, out _, uid, (byte)MessageType.Chat, message, attrs, timeout);
+            return InternalSendMessage(out messageId, out _, uid, (byte)MessageType.Chat, message, attrs, 0, timeout);
         }
 
         public bool SendChat(SendMessageDelegate callback, long uid, string message, string attrs = "", int timeout = 0)
         { 
-            return InternalSendMessage(uid, (byte)MessageType.Chat, message, attrs, callback, timeout);
+            return InternalSendMessage(uid, (byte)MessageType.Chat, message, attrs, callback, 0, timeout);
         }
 
         public int SendChat(out long messageId, out long mtime, long uid, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendMessage(out messageId, out mtime, uid, (byte)MessageType.Chat, message, attrs, timeout);
+            return InternalSendMessage(out messageId, out mtime, uid, (byte)MessageType.Chat, message, attrs, 0, timeout);
         }
 
         public bool SendGroupChat(MessageIdDelegate callback, long groupId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendGroupMessage(groupId, (byte)MessageType.Chat, message, attrs, callback, timeout);
+            return InternalSendGroupMessage(groupId, (byte)MessageType.Chat, message, attrs, callback, 0, timeout);
         }
 
         public int SendGroupChat(out long messageId, long groupId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendGroupMessage(out messageId, out _, groupId, (byte)MessageType.Chat, message, attrs, timeout);
+            return InternalSendGroupMessage(out messageId, out _, groupId, (byte)MessageType.Chat, message, attrs, 0, timeout);
         }
 
         public bool SendGroupChat(SendMessageDelegate callback, long groupId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendGroupMessage(groupId, (byte)MessageType.Chat, message, attrs, callback, timeout);
+            return InternalSendGroupMessage(groupId, (byte)MessageType.Chat, message, attrs, callback, 0, timeout);
         }
 
         public int SendGroupChat(out long messageId, out long mtime, long groupId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendGroupMessage(out messageId, out mtime, groupId, (byte)MessageType.Chat, message, attrs, timeout);
+            return InternalSendGroupMessage(out messageId, out mtime, groupId, (byte)MessageType.Chat, message, attrs, 0, timeout);
         }
 
         public bool SendRoomChat(MessageIdDelegate callback, long roomId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendRoomMessage(roomId, (byte)MessageType.Chat, message, attrs, callback, timeout);
+            return InternalSendRoomMessage(roomId, (byte)MessageType.Chat, message, attrs, callback, 0, timeout);
         }
 
         public int SendRoomChat(out long messageId, long roomId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendRoomMessage(out messageId, out _, roomId, (byte)MessageType.Chat, message, attrs, timeout);
+            return InternalSendRoomMessage(out messageId, out _, roomId, (byte)MessageType.Chat, message, attrs, 0, timeout);
         }
 
         public bool SendRoomChat(SendMessageDelegate callback, long roomId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendRoomMessage(roomId, (byte)MessageType.Chat, message, attrs, callback, timeout);
+            return InternalSendRoomMessage(roomId, (byte)MessageType.Chat, message, attrs, callback, 0, timeout);
         }
 
         public int SendRoomChat(out long messageId, out long mtime, long roomId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendRoomMessage(out messageId, out mtime, roomId, (byte)MessageType.Chat, message, attrs, timeout);
+            return InternalSendRoomMessage(out messageId, out mtime, roomId, (byte)MessageType.Chat, message, attrs, 0, timeout);
         }
         //===========================[ Sending Cmd ]=========================//
         public bool SendCmd(MessageIdDelegate callback, long uid, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendMessage(uid, (byte)MessageType.Cmd, message, attrs, callback, timeout);
+            return InternalSendMessage(uid, (byte)MessageType.Cmd, message, attrs, callback, 0, timeout);
         }
 
         public int SendCmd(out long messageId, long uid, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendMessage(out messageId, out _, uid, (byte)MessageType.Cmd, message, attrs, timeout);
+            return InternalSendMessage(out messageId, out _, uid, (byte)MessageType.Cmd, message, attrs, 0, timeout);
         }
 
         public bool SendCmd(SendMessageDelegate callback, long uid, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendMessage(uid, (byte)MessageType.Cmd, message, attrs, callback, timeout);
+            return InternalSendMessage(uid, (byte)MessageType.Cmd, message, attrs, callback, 0, timeout);
         }
 
         public int SendCmd(out long messageId, out long mtime, long uid, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendMessage(out messageId, out mtime, uid, (byte)MessageType.Cmd, message, attrs, timeout);
+            return InternalSendMessage(out messageId, out mtime, uid, (byte)MessageType.Cmd, message, attrs, 0, timeout);
         }
 
         public bool SendGroupCmd(MessageIdDelegate callback, long groupId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendGroupMessage(groupId, (byte)MessageType.Cmd, message, attrs, callback, timeout);
+            return InternalSendGroupMessage(groupId, (byte)MessageType.Cmd, message, attrs, callback, 0, timeout);
         }
 
         public int SendGroupCmd(out long messageId, long groupId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendGroupMessage(out messageId, out _, groupId, (byte)MessageType.Cmd, message, attrs, timeout);
+            return InternalSendGroupMessage(out messageId, out _, groupId, (byte)MessageType.Cmd, message, attrs, 0, timeout);
         }
 
         public bool SendGroupCmd(SendMessageDelegate callback, long groupId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendGroupMessage(groupId, (byte)MessageType.Cmd, message, attrs, callback, timeout);
+            return InternalSendGroupMessage(groupId, (byte)MessageType.Cmd, message, attrs, callback, 0, timeout);
         }
 
         public int SendGroupCmd(out long messageId, out long mtime, long groupId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendGroupMessage(out messageId, out mtime, groupId, (byte)MessageType.Cmd, message, attrs, timeout);
+            return InternalSendGroupMessage(out messageId, out mtime, groupId, (byte)MessageType.Cmd, message, attrs, 0, timeout);
         }
 
         public bool SendRoomCmd(MessageIdDelegate callback, long roomId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendRoomMessage(roomId, (byte)MessageType.Cmd, message, attrs, callback, timeout);
+            return InternalSendRoomMessage(roomId, (byte)MessageType.Cmd, message, attrs, callback, 0, timeout);
         }
 
         public int SendRoomCmd(out long messageId, long roomId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendRoomMessage(out messageId, out _, roomId, (byte)MessageType.Cmd, message, attrs, timeout);
+            return InternalSendRoomMessage(out messageId, out _, roomId, (byte)MessageType.Cmd, message, attrs, 0, timeout);
         }
 
         public bool SendRoomCmd(SendMessageDelegate callback, long roomId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendRoomMessage(roomId, (byte)MessageType.Cmd, message, attrs, callback, timeout);
+            return InternalSendRoomMessage(roomId, (byte)MessageType.Cmd, message, attrs, callback, 0, timeout);
         }
 
         public int SendRoomCmd(out long messageId, out long mtime, long roomId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendRoomMessage(out messageId, out mtime, roomId, (byte)MessageType.Cmd, message, attrs, timeout);
+            return InternalSendRoomMessage(out messageId, out mtime, roomId, (byte)MessageType.Cmd, message, attrs, 0, timeout);
         }
         //===========================[ History Chat (Chat & Cmd & Audio) ]=========================//
         private static readonly List<byte> chatMTypes = new List<byte>
@@ -287,6 +287,89 @@ namespace com.fpnn.rtm
                 p2pList = WantLongList(answer, "p2p");
                 groupList = WantLongList(answer, "group");
 
+                return fpnn.ErrorCode.FPNN_EC_OK;
+            }
+            catch (Exception)
+            {
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+            }
+        }
+
+        public bool GetUnread(Action<List<long>, List<long>, long, int> callback, bool clear = false, bool gettime = false,  int timeout = 0)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(null, null, 0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("getunread");
+            quest.Param("clear", clear);
+            quest.Param("gettime", gettime);
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
+
+                List<long> p2pList = null;
+                List<long> groupList = null;
+                long logoutTime = 0;
+
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                {
+                    try
+                    {
+                        p2pList = WantLongList(answer, "p2p");
+                        groupList = WantLongList(answer, "group");
+                        logoutTime = answer.Get<long>("logouttime", 0);
+                    }
+                    catch (Exception)
+                    {
+                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+                    }
+                }
+                callback(p2pList, groupList, logoutTime, errorCode);
+            }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(null, null, 0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        public int GetUnread(out List<long> p2pList, out List<long> groupList, out long logoutTime, bool clear = false, bool gettime = false, int timeout = 0)
+        {
+            p2pList = null;
+            groupList = null;
+            logoutTime = 0;
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("getunread");
+            quest.Param("clear", clear);
+            quest.Param("gettime", gettime);
+
+            Answer answer = client.SendQuest(quest, timeout);
+
+            if (answer.IsException())
+                return answer.ErrorCode();
+
+            try
+            {
+                p2pList = WantLongList(answer, "p2p");
+                groupList = WantLongList(answer, "group");
+                logoutTime = answer.Get<long>("logouttime", 0);
+                
                 return fpnn.ErrorCode.FPNN_EC_OK;
             }
             catch (Exception)
@@ -651,7 +734,7 @@ namespace com.fpnn.rtm
         }
 
         //===========================[ Remove Session ]=========================//
-        public bool RemoveSession(DoneDelegate callback, long toUid, int timeout = 0)
+        public bool RemoveSession(DoneDelegate callback, long toUid, bool oneway = false, int timeout = 0)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -667,6 +750,7 @@ namespace com.fpnn.rtm
 
             Quest quest = new Quest("removesession");
             quest.Param("to", toUid);
+            quest.Param("oneway", oneway);
 
             bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => { callback(errorCode); }, timeout);
 
@@ -679,7 +763,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        public int RemoveSession(long toUid, int timeout = 0)
+        public int RemoveSession(long toUid, bool oneway = false, int timeout = 0)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -687,6 +771,7 @@ namespace com.fpnn.rtm
 
             Quest quest = new Quest("removesession");
             quest.Param("to", toUid);
+            quest.Param("oneway", oneway);
 
             Answer answer = client.SendQuest(quest, timeout);
             return answer.ErrorCode();
@@ -1333,6 +1418,7 @@ namespace com.fpnn.rtm
                         result.text = answer.Get<string>("text", null);
                         result.tags = GetIntList(answer, "tags");
                         result.wlist = GetStringList(answer, "wlist");
+                        result.language = answer.Get<string>("language", null);
                     }
                     catch (Exception)
                     {
@@ -1375,6 +1461,7 @@ namespace com.fpnn.rtm
                 result.text = answer.Get<string>("text", null);
                 result.tags = GetIntList(answer, "tags");
                 result.wlist = GetStringList(answer, "wlist");
+                result.language = answer.Get<string>("language", null);
 
                 return fpnn.ErrorCode.FPNN_EC_OK;
             }
@@ -1383,7 +1470,6 @@ namespace com.fpnn.rtm
                 return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
             }
         }
-
 
         //===========================[ ImageCheck ]=========================//
         //-------- url version ----------//

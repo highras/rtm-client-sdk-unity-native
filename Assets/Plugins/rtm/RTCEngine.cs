@@ -295,8 +295,8 @@ namespace com.fpnn.rtm
 
         class AndroidPermissionCallback
         {
-            PERMISSION_STATUS microphone = PERMISSION_STATUS.DENIEDANDDONTASKAGAIN;
-            PERMISSION_STATUS camera = PERMISSION_STATUS.DENIEDANDDONTASKAGAIN;
+            internal PERMISSION_STATUS microphone = PERMISSION_STATUS.DENIEDANDDONTASKAGAIN;
+            internal PERMISSION_STATUS camera = PERMISSION_STATUS.DENIEDANDDONTASKAGAIN;
             internal bool requireMicrophone = false;
             internal bool requireCamera = false;
             bool microphoneFinish = false;
@@ -628,19 +628,27 @@ namespace com.fpnn.rtm
                 callbacks.PermissionGranted += androidPermission.PermissionCallbacks_PermissionGranted;
                 callbacks.PermissionDeniedAndDontAskAgain += androidPermission.PermissionCallbacks_PermissionDeniedAndDontAskAgain;
                 androidPermission.callback = callback;
-                androidPermission.requireMicrophone = requireMicrophone;
-                androidPermission.requireCamera = requireCamera;
 
-                if (requireMicrophone)
-                {
-                    if (requireCamera)
-                        Permission.RequestUserPermissions(new string[] { Permission.Microphone, Permission.Camera }, callbacks);
-                    else
-                        Permission.RequestUserPermissions(new string[] { Permission.Microphone }, callbacks);
-                }
-                else if (requireCamera)
-                {
+                bool hasMicrophone = Permission.HasUserAuthorizedPermission(Permission.Microphone);
+                bool hasCamera = Permission.HasUserAuthorizedPermission(Permission.Camera);
+                androidPermission.requireMicrophone = requireMicrophone && !hasMicrophone;
+                androidPermission.requireCamera = requireCamera && !hasCamera;
+                if (requireMicrophone && hasMicrophone)
+                    androidPermission.microphone = PERMISSION_STATUS.GRANTED;
+                if (requireCamera && hasCamera)
+                    androidPermission.camera = PERMISSION_STATUS.GRANTED;
+
+                if (androidPermission.requireMicrophone && androidPermission.requireCamera)
+                    Permission.RequestUserPermissions(new string[] { Permission.Microphone, Permission.Camera }, callbacks);
+                else if (androidPermission.requireMicrophone)
+                    Permission.RequestUserPermissions(new string[] { Permission.Microphone }, callbacks);
+                else if (androidPermission.requireCamera)
                     Permission.RequestUserPermissions(new string[] { Permission.Camera }, callbacks);
+                else
+                {
+                    RTMControlCenter.callbackQueue.PostAction(() => {
+                        callback?.Invoke(requireMicrophone?PERMISSION_STATUS.GRANTED:PERMISSION_STATUS.DENIEDANDDONTASKAGAIN, requireCamera?PERMISSION_STATUS.GRANTED:PERMISSION_STATUS.DENIEDANDDONTASKAGAIN);
+                    });
                 }
             }
 

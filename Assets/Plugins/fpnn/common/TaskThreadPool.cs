@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-using UnityEngine;
 
 namespace com.fpnn.common
 {
@@ -149,7 +148,7 @@ namespace com.fpnn.common
                     else
                         core.tempThreadCount--;
                 }
-                throw e;
+                core.errorRecorder?.RecordError(e);
             }
         }
 
@@ -214,7 +213,7 @@ namespace com.fpnn.common
                 core.quitSemaphore.Release();
         }
 
-        private static void Worker(System.Object obj)
+        private static void Worker(Object obj)
         {
             TaskThreadPoolCore core = (TaskThreadPoolCore)obj;
 
@@ -257,7 +256,7 @@ namespace com.fpnn.common
             }
         }
 
-        private static void TempWorker(System.Object obj)
+        private static void TempWorker(Object obj)
         {
             TaskThreadPoolCore core = (TaskThreadPoolCore)obj;
             int latencySeconds = core.tempThreadLatencySeconds;

@@ -268,7 +268,17 @@ namespace com.fpnn.rtm
         {
             bool startRelogin = true;
             if (questProcessor != null)
+            { 
                 startRelogin = questProcessor.ReloginWillStart(lastErrorCode, retriedCount);
+                if (questProcessor.ReloginWillStartCallback != null)
+                {
+                    RTMControlCenter.callbackQueue.PostAction(() => 
+                    {
+                        questProcessor.ReloginWillStartCallback?.Invoke(lastErrorCode, retriedCount);
+                    });
+                }
+            }
+
 
             if (startRelogin)       //-- if startRelogin == false, will call SessionClosed(), the UnregisterSession() will be called in SessionClosed().
                 RTMControlCenter.UnregisterSession(connectionId);
@@ -466,7 +476,7 @@ namespace com.fpnn.rtm
             long to = quest.Want<long>("to");
             long mid = quest.Want<long>("mid");
 
-            if (duplicatedFilter.CheckP2PMessage(from, mid) == false)
+            if (duplicatedFilter.CheckP2PMessage(from, mid, to) == false)
                 return null;
 
             RTMMessage rtmMessage = BuildRTMMessage(quest, from, to, mid);
