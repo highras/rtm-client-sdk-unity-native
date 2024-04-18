@@ -40,8 +40,8 @@ namespace com.fpnn
         private static extern void setRecvDataCallback(RecvDataDelegate callback);
 #endif
 
-        private static object interLocker;
-        private static Dictionary<UInt64, Client> clientMap;
+        private static object interLocker = new object();
+        private static Dictionary<UInt64, Client> clientMap = new Dictionary<ulong, Client>();
         private static volatile bool running;
         private static Thread routineThread;
         static ClientManager()
@@ -50,8 +50,6 @@ namespace com.fpnn
 
         public static void Init()
         { 
-            interLocker = new object();
-            clientMap = new Dictionary<UInt64, Client>();
             setRecvDataCallback(RecvDataCallBack);
             running = true;
             routineThread = new Thread(routine);

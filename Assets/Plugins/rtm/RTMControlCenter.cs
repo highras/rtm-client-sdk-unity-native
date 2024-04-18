@@ -38,7 +38,7 @@ namespace com.fpnn.rtm
         //===========================[ Session Functions ]=========================//
         internal static void RegisterSession(UInt64 connectionId, RTMClient client)
         {
-            CheckRoutineInit();
+            // CheckRoutineInit();
 
             lock (interLocker)
             {
@@ -127,7 +127,7 @@ namespace com.fpnn.rtm
         //===========================[ Relogin Functions ]=========================//
         internal static void DelayRelogin(RTMClient client, long triggeredMs)
         {
-            CheckRoutineInit();
+            // CheckRoutineInit();
 
             lock (interLocker)
             {
@@ -137,7 +137,7 @@ namespace com.fpnn.rtm
                 }
                 catch (ArgumentException)
                 {
-                     //-- Do nothing.
+                    //-- Do nothing.
                 }
             }
         }
@@ -369,6 +369,20 @@ namespace com.fpnn.rtm
             InitCallbackQueue();
             if (config == null)
                 return;
+            if (routineInited == false)
+            {
+                routineRunning = true;
+                routineThread = new Thread(RoutineFunc)
+                {
+                    Name = "RTM.ControlCenter.RoutineThread",
+#if UNITY_2017_1_OR_NEWER
+#else
+                    IsBackground = true
+#endif
+                };
+                routineThread.Start();
+                routineInited = true;                
+            }
 
             RTMConfig.Config(config);
         }
@@ -470,7 +484,7 @@ namespace com.fpnn.rtm
             }
 
             foreach (RTMClient client in clients)
-                    client.Close(true, true);
+                client.Close(true, true);
 
             rtmClients.Clear();
             pidUidClients.Clear();

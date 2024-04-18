@@ -10,7 +10,7 @@ namespace com.fpnn.rtm
 
     public class RTMConfig
     {
-        public static readonly string SDKVersion = "1.1.10";
+        public static readonly string SDKVersion = "1.1.1";
         public static readonly string InterfaceVersion = "2.7.3";
         public static readonly string RTMGameObjectName = "RTM_GAMEOBJECT";
 
@@ -85,6 +85,7 @@ namespace com.fpnn.rtm
     {
         Withdraw = 1,
         GEO = 2,
+        SystemNotification = 6,
         MultiLogin = 7,
         Chat = 30,
         Cmd = 32,
@@ -93,6 +94,7 @@ namespace com.fpnn.rtm
         ImageFile = 40,
         AudioFile = 41,
         VideoFile = 42,
+        VoiceFile = 43,
         NormalFile = 50
     }
 
@@ -102,6 +104,36 @@ namespace com.fpnn.rtm
         GroupMessage = 2,
         RoomMessage = 3,
         BroadcastMessage = 4
+    }
+
+    public enum IMLIB_MessageType
+    { 
+        AddFriendApply = 1,
+        RefuseFriendApply = 2,
+        EnterGroupApply = 3,
+        RefuseEnterGroupApply = 4,
+        InvitedIntoGroup = 5,
+        RefuseInvitedIntoGroup = 7,
+        EnterRoomApply = 9,
+        RefuseEnterRoomApply = 10,
+        InviteIntoRoom = 11,
+        RefuseInvitedIntoRoom = 13,
+        FriendChanged = 15,
+        GroupChanged = 17,
+        RoomChanged = 18,
+        GroupMemberChanged = 19,
+        RoomMemberChanged = 20,
+        AcceptFriendApply = 21,
+        AcceptEnterGroupApply = 22,
+        AcceptEnterRoomApply = 23,
+        AcceptInvitedIntoGroup = 24,
+        AcceptInvitedIntoRoom = 25,
+        AddGroupManagers = 26,
+        RemoveGroupManagers = 27,
+        GroupOwnerChanged = 28,
+        AddRoomManagers = 29,
+        RemoveRoomManagers = 30,
+        RoomOwnerChanged = 31,
     }
 
     public enum RTCRoomType : byte

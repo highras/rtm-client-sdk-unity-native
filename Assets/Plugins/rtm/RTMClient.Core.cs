@@ -454,58 +454,14 @@ namespace com.fpnn.rtm
 
             rtcGate.SetQuestProcessor(rtcProcessor);
             rtcGate.SetConnectionConnectedDelegate((UInt64 connectionId, string endpoint, bool connected) => {
-                //if (requireClose)
-                //{
-                //    AuthFinish(false, fpnn.ErrorCode.FPNN_EC_CORE_CONNECTION_CLOSED);
-                //    return;
-                //}
 
-                //if (connected)
-                //{
-                //    rtmGateConnectionId = connectionId;
-                //    RTMControlCenter.RegisterSession(rtmGateConnectionId, this);
-                //    Auth(true);
-                //}
-                //else
-                //{
-                //    AuthFinish(false, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
-                //}
             });
 
             rtcGate.SetConnectionCloseDelegate((UInt64 connectionId, string endpoint, bool causedByError) => {
-                //bool trigger = false;
-                //bool isConnecting = false;
-                //bool startRelogin = false;
-                //lock (interLocker)
-                //{
-                //    trigger = rtmGateConnectionId == connectionId;
-                //    if (trigger)
-                //    {
-                //        if (status == ClientStatus.Connecting)
-                //            isConnecting = true;
-                //        else
-                //            status = ClientStatus.Closed;
-                //    }
-
-                //    if (autoReloginInfo != null)
-                //    {
-                //        startRelogin = (autoReloginInfo.disabled == false && autoReloginInfo.canRelogin);
-                //        autoReloginInfo.lastErrorCode = (causedByError ? fpnn.ErrorCode.FPNN_EC_CORE_CONNECTION_CLOSED : fpnn.ErrorCode.FPNN_EC_OK);
-                //    }
-                //}
-
-                //if (trigger)
-                //{
-                //    if (isConnecting)
-                //        AuthFinish(false, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
-                //    else
-                //    {
-                //        if (startRelogin)
-                //            StartRelogin();
-                //        else
-                //            processor.SessionClosed(causedByError ? fpnn.ErrorCode.FPNN_EC_CORE_UNKNOWN_ERROR : fpnn.ErrorCode.FPNN_EC_OK);
-                //    }
-                //}
+                foreach (long roomId in rtcRoomList.ToList())
+                    RTCEngine.ExitRTCRoom(this, roomId);
+                rtcRoomList.Clear();
+                RTCEngine.CloseP2PRTC();
             });
             rtcGate.SyncConnect();
         }
