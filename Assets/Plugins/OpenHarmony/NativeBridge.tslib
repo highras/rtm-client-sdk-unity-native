@@ -1,0 +1,458 @@
+import { Callback } from '@ohos.base'
+import tuanjie from 'libtuanjie.so'
+import DeviceInfo from '@ohos.deviceInfo'
+import connection from '@ohos.net.connection';
+import { BusinessError } from '@ohos.base';
+import common from '@ohos.app.ability.common';
+import ArrayList from '@ohos.util.ArrayList';
+import audio from '@ohos.multimedia.audio';
+import fs, { ReadOptions } from '@ohos.file.fs'; 
+import util from '@ohos.util';
+import buffer from '@ohos.buffer';
+
+// //自定义回调给unity的数据对象
+// //C#在callback中通过arg.Get<string>("msg") arg.Get<string>("err")获取值
+// class Msg2Unity{
+//   msg:string;
+//   err:string;
+//   constructor(msg:string, err:string = "") {
+//     this.msg = msg;
+//     this.err = err;
+//   }
+// }
+
+class NetworkChangedCallback{
+  status:number = -1;
+  constructor(status:number){
+    this.status = status;
+  }
+}
+
+export class NetworkStatusClass {
+  static networkStatus: Number = undefined;
+  static initNetworkStatus(callback: Callback<NetworkChangedCallback>){
+  //   let netSpecifier: connection.NetSpecifier = {
+  //     netCapabilities: {
+  //       // 假设当前默认网络是WiFi，需要创建蜂窝网络连接，可指定网络类型为蜂窝网
+  //       bearerTypes: [connection.NetBearType.BEARER_CELLULAR, connection.NetBearType.BEARER_WIFI],
+  //       // 指定网络能力为Internet
+  //       networkCap: [connection.NetCap.NET_CAPABILITY_INTERNET]
+  //     },
+  //   };
+
+    // 指定超时时间为10s(默认值为0)
+    //let timeout = 10 * 1000;
+
+    // 创建NetConnection对象
+    let conn = connection.createNetConnection();
+
+//    connection.getDefaultNet().then((netHandle: connection.NetHandle) => {
+//      console.info("default net is " + JSON.stringify(netHandle));
+//      if (netHandle.netId == 0){
+//        callback(new NetworkChangedCallback(0));
+//        return;
+//      }
+//
+//      connection.getNetCapabilities(netHandle, (error: BusinessError, data: connection.NetCapabilities) => {
+//        if (error) {
+//          callback(new NetworkChangedCallback(0));
+//          console.error(`Failed to get net capabilities. Code:${error.code}, message:${error.message}`);
+//          return;
+//        }
+//        if (data.bearerTypes[0] == connection.NetBearType.BEARER_CELLULAR)
+//          callback(new NetworkChangedCallback(1));
+//        else if (data.bearerTypes[0] == connection.NetBearType.BEARER_WIFI)
+//          callback(new NetworkChangedCallback(2));
+//        console.info("Succeeded to get data: " + JSON.stringify(data));
+//      })
+//    });
+
+    // 订阅指定网络状态变化的通知
+    conn.register((error: BusinessError, data: void) => {
+      console.log(JSON.stringify(error));
+      console.log(JSON.stringify(data));
+    });
+
+    // 订阅事件，如果当前指定网络可用，通过on_netAvailable通知用户
+    conn.on('netAvailable', ((data: connection.NetHandle) => {
+      console.log("net is available, netId is " + data.netId);
+      connection.getDefaultNet().then((netHandle: connection.NetHandle) => {
+      if (netHandle.netId == 0){
+        callback(new NetworkChangedCallback(0));
+        return;
+      }
+
+      connection.getNetCapabilities(netHandle, (error: BusinessError, data: connection.NetCapabilities) => {
+        if (error) {
+          callback(new NetworkChangedCallback(0));
+          console.error(`Failed to get net capabilities. Code:${error.code}, message:${error.message}`);
+          return;
+        }
+        if (data.bearerTypes[0] == connection.NetBearType.BEARER_CELLULAR)
+          callback(new NetworkChangedCallback(1));
+        else if (data.bearerTypes[0] == connection.NetBearType.BEARER_WIFI)
+          callback(new NetworkChangedCallback(2));
+        console.info("Succeeded to get data: " + JSON.stringify(data));
+      })
+    });
+    }));
+
+    // 订阅事件，如果当前指定网络不可用，通过on_netUnavailable通知用户
+    conn.on('netUnavailable', ((data: void) => {
+      callback(new NetworkChangedCallback(0));
+      console.log("net is unavailable, data is " + JSON.stringify(data));
+    }));
+
+    conn.on('netLost', (data: connection.NetHandle) => {
+      console.info("netLost " + JSON.stringify(data));
+      callback(new NetworkChangedCallback(0));
+    });
+
+    // 当不使用该网络时，可以调用该对象的unregister()方法，取消订阅
+    // conn.unregister((err: BusinessError, data: void) => {
+    // });
+  }
+}
+
+class AudioCapturerDeviceChangedCallback{
+  status:number = -1;
+  constructor(status:number){
+    this.status = status;
+  }
+}
+export class AudioCapturerDeviceStatusClass {
+
+  static initAudioCapturerDeviceStatus(callback: Callback<AudioCapturerDeviceChangedCallback>){
+    let audioManager = audio.getAudioManager();  // 需要先创建AudioManager实例
+    let audioRoutingManager = audioManager.getRoutingManager();  // 再调用AudioManager的方法创建AudioRoutingManager实例
+    // 监听音频设备状态变化
+    audioRoutingManager.on('deviceChange', audio.DeviceFlag.ALL_DEVICES_FLAG, (deviceChanged: audio.DeviceChangeAction) => {
+      callback(new AudioCapturerDeviceChangedCallback(deviceChanged.type));
+      console.info('device change type : ' + deviceChanged.type);  // 设备连接状态变化，0为连接，1为断开连接
+      console.info('device descriptor size : ' + deviceChanged.deviceDescriptors.length);
+      console.info('device change descriptor : ' + deviceChanged.deviceDescriptors[0].deviceRole);  // 设备角色
+      console.info('device change descriptor : ' + deviceChanged.deviceDescriptors[0].deviceType);  // 设备类型
+    });
+  }
+}
+
+class StartRecordCallback{
+  success:number;
+
+  constructor(success:number) {
+    this.success = success;
+  }
+}
+
+class StopRecordCallback{
+  audioData:string;
+  constructor(audioData:string){
+    this.audioData = audioData;
+  }
+}
+
+class VolumeCallback{
+  volume:number;
+
+  constructor(volume:number) {
+    this.volume = volume;
+  }
+}
+
+class StartPlayCallback{
+  success:number;
+
+  constructor(success:number) {
+    this.success = success;
+  }
+}
+
+class StopPlayCallback{
+}
+
+const TAG = 'RTMAudioCapturer';
+const fileName = '/RTMAudio-1C-16000.wav';
+
+class Options {
+  offset?: number;
+  length?: number;
+}
+
+export class AudioRecorderClass{
+  static bufferSize: number = 0;
+  static volumeCallback : Callback<VolumeCallback>;
+  static audioCapturer: audio.AudioCapturer | undefined = undefined;
+  static audioStreamInfo: audio.AudioStreamInfo = {
+    samplingRate: audio.AudioSamplingRate.SAMPLE_RATE_16000, // 采样率
+    channels: audio.AudioChannel.CHANNEL_1, // 通道
+    sampleFormat: audio.AudioSampleFormat.SAMPLE_FORMAT_S16LE, // 采样格式
+    encodingType: audio.AudioEncodingType.ENCODING_TYPE_RAW // 编码格式
+  }
+  static audioCapturerInfo: audio.AudioCapturerInfo = {
+    source: audio.SourceType.SOURCE_TYPE_MIC, // 音源类型
+    capturerFlags: 0 // 音频采集器标志
+  }
+  static audioCapturerOptions: audio.AudioCapturerOptions = {
+    streamInfo: this.audioStreamInfo,
+    capturerInfo: this.audioCapturerInfo
+  }
+  static file : fs.File;
+  static readDataCallback = (arrayBuffer: ArrayBuffer) => {
+    let options: Options = {
+      offset: this.bufferSize,
+      length: arrayBuffer.byteLength
+    }
+    fs.writeSync(this.file.fd, arrayBuffer, options);
+    this.bufferSize += arrayBuffer.byteLength;
+    let int16Array = new Int16Array(arrayBuffer);
+    let level : number = 0;
+    int16Array.forEach(function(item) {
+      level += Math.pow(item, 2);
+    });
+    level = level / 32767.0 / 32767.0 / 320.0;
+    level = 10 * Math.log(level);
+    level += 100;
+    if(level < 0){
+      level = 0;
+    }
+    if(level > 100){
+      level = 100;
+    }
+    this.volumeCallback(new VolumeCallback(level));
+  }
+
+  static StartRecord(volumeCallback:Callback<VolumeCallback>, startRecordCallback: Callback<StartRecordCallback>) {
+    if (this.audioCapturer !== undefined && ((this.audioCapturer as audio.AudioCapturer).state.valueOf() == audio.AudioState.STATE_RUNNING || (this.audioCapturer as audio.AudioCapturer).state.valueOf() == audio.AudioState.STATE_PAUSED)){
+      console.info(`${TAG}: AudioCapturer is recording`);
+      startRecordCallback(new StartRecordCallback(0));
+      return;
+    }
+    audio.createAudioCapturer(this.audioCapturerOptions, (err, capturer) => { // 创建AudioCapturer实例
+      if (err) {
+        console.error(`${TAG}:Invoke createAudioCapturer failed, code is ${err.code}, message is ${err.message}`);
+        startRecordCallback(new StartRecordCallback(0));
+        return;
+      }
+      console.info(`${TAG}: create AudioCapturer success`);
+      this.audioCapturer = capturer;
+      if (this.audioCapturer !== undefined) {
+        (this.audioCapturer as audio.AudioCapturer).on('readData', this.readDataCallback);
+        let stateGroup = [audio.AudioState.STATE_PREPARED, audio.AudioState.STATE_PAUSED, audio.AudioState.STATE_STOPPED];
+        if (stateGroup.indexOf((this.audioCapturer as audio.AudioCapturer).state.valueOf()) === -1) { // 当且仅当状态为STATE_PREPARED、STATE_PAUSED和STATE_STOPPED之一时才能启动采集
+          console.error(`${TAG}: start failed`);
+          startRecordCallback(new StartRecordCallback(0));
+          return;
+        }
+
+        this.bufferSize = 0;
+        this.volumeCallback = volumeCallback;
+        console.info("${TAG}:start record success");
+        let path = globalThis.context.cacheDir;
+        let filePath = path + fileName;
+        //this.file = fs.openSync(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE || fs.OpenMode.TRUNC);
+        fs.open(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE || fs.OpenMode.TRUNC, (err: BusinessError, file: fs.File) => {
+          if (err) {
+            console.error("open failed with error message: " + err.message + ", error code: " + err.code);
+            startRecordCallback(new StartRecordCallback(0));
+          } else {
+            this.file = file;
+            console.info("file fd: " + file.fd);
+
+            // 启动采集
+            (this.audioCapturer as audio.AudioCapturer).start((err: BusinessError) => {
+              if (err) {
+                console.error('${TAG}:Capturer start failed.');
+                startRecordCallback(new StartRecordCallback(0));
+              } else {
+                console.info('${TAG}:Capturer start success.');
+                startRecordCallback(new StartRecordCallback(1));
+              }
+            });
+          }
+        });
+      }
+      else
+      {
+        startRecordCallback(new StartRecordCallback(0));
+      }
+    });
+  }
+
+
+  // 停止采集
+  static StopRecord(callback : Callback<StopRecordCallback>) {
+    if (this.audioCapturer !== undefined) {
+      // 只有采集器状态为STATE_RUNNING或STATE_PAUSED的时候才可以停止
+      if ((this.audioCapturer as audio.AudioCapturer).state.valueOf() !== audio.AudioState.STATE_RUNNING && (this.audioCapturer as audio.AudioCapturer).state.valueOf() !== audio.AudioState.STATE_PAUSED) {
+        console.info('Capturer is not running or paused');
+        callback(new StopRecordCallback(''));
+        return;
+      }
+
+      //停止采集
+      (this.audioCapturer as audio.AudioCapturer).stop((err: BusinessError) => {
+        if (err) {
+          console.error('Capturer stop failed.');
+          callback(new StopRecordCallback(''));
+          return;
+        }
+
+        console.info('Capturer stop success.');
+
+        // 采集器状态不是STATE_RELEASED或STATE_NEW状态，才能release
+        if ((this.audioCapturer as audio.AudioCapturer).state.valueOf() === audio.AudioState.STATE_RELEASED || (this.audioCapturer as audio.AudioCapturer).state.valueOf() === audio.AudioState.STATE_NEW) {
+          console.info('Capturer already released');
+          callback(new StopRecordCallback(''));
+          return;
+        }
+
+        console.info('read file');
+        let arrayBuffer = new ArrayBuffer(this.bufferSize);
+        let options: ReadOptions = {
+          offset: 0
+        }
+
+        fs.read(this.file.fd, arrayBuffer, options, (err: BusinessError, readLen: number) => {
+          if (err) {
+            console.error("read failed with error message: " + err.message + ", error code: " + err.code);
+          } else {
+            console.info("read file data succeed, readLen = " + readLen);
+            let array = new Uint8Array(arrayBuffer);
+            let base64Helper = new util.Base64Helper();
+            let str = base64Helper.encodeToStringSync(array)
+            //let buf = buffer.from(arrayBuffer, 0, readLen);
+            this.bufferSize = 0;
+            callback(new StopRecordCallback(str));
+          }
+          fs.closeSync(this.file);
+        });
+
+        //释放资源
+        (this.audioCapturer as audio.AudioCapturer).release((err: BusinessError) => {
+          if (err) {
+            console.error('Capturer release failed.');
+          } else {
+            console.info('Capturer release success.');
+          }
+        });
+      });
+    }
+    else{
+        callback(new StopRecordCallback(''));
+    }
+  }
+}
+
+export class AudioPlayerClass {
+  static arrayBuffer: ArrayBuffer;
+  static bufferSize: number = 0;
+  static stopPlayCallback : Callback<StopPlayCallback>
+  static audioStreamInfo: audio.AudioStreamInfo = {
+    samplingRate: audio.AudioSamplingRate.SAMPLE_RATE_16000, // 采样率
+    channels: audio.AudioChannel.CHANNEL_1, // 通道
+    sampleFormat: audio.AudioSampleFormat.SAMPLE_FORMAT_S16LE, // 采样格式
+    encodingType: audio.AudioEncodingType.ENCODING_TYPE_RAW // 编码格式
+  }
+  static renderModel: audio.AudioRenderer | undefined = undefined;
+  static audioRendererInfo: audio.AudioRendererInfo = {
+    usage: audio.StreamUsage.STREAM_USAGE_MUSIC, // 音频流使用类型
+    rendererFlags: 0 // 音频渲染器标志
+  }
+  static audioRendererOptions: audio.AudioRendererOptions = {
+    streamInfo: this.audioStreamInfo,
+    rendererInfo: this.audioRendererInfo
+  }
+  static writeDataCallback = (buffer: ArrayBuffer) => {
+    if (this.bufferSize >= this.arrayBuffer.byteLength)
+      return;
+    let targetArray = new Uint8Array(buffer);
+    let srcArray = new Uint8Array(this.arrayBuffer.slice(this.bufferSize, this.bufferSize+buffer.byteLength));
+    targetArray.set(srcArray);
+    this.bufferSize += buffer.byteLength;
+    if (this.bufferSize >= this.arrayBuffer.byteLength)
+    {
+      this.StopPlay();
+    }
+  }
+  static StartPlay(audioData : string, startCallback : Callback<StartPlayCallback>, stopCallback : Callback<StopPlayCallback>){
+    if (this.renderModel !== undefined && ((this.renderModel as audio.AudioRenderer).state.valueOf() == audio.AudioState.STATE_RUNNING || (this.renderModel as audio.AudioRenderer).state.valueOf() == audio.AudioState.STATE_PAUSED)) {
+      console.info(`${TAG}: AudioRenderer is rendering`);
+      startCallback(new StartPlayCallback(0));
+      return;
+    }
+    audio.createAudioRenderer(this.audioRendererOptions, (err, renderer) => { // 创建AudioRenderer实例
+      if (!err) {
+        console.info(`${TAG}: creating AudioRenderer success`);
+        this.renderModel = renderer;
+        if (this.renderModel !== undefined) {
+          (this.renderModel as audio.AudioRenderer).on('writeData', this.writeDataCallback);
+          let stateGroup = [audio.AudioState.STATE_PREPARED, audio.AudioState.STATE_PAUSED, audio.AudioState.STATE_STOPPED];
+          if (stateGroup.indexOf((this.renderModel as audio.AudioRenderer).state.valueOf()) === -1) { // 当且仅当状态为prepared、paused和stopped之一时才能启动渲染
+            startCallback(new StartPlayCallback(0));
+            return;
+          }
+          //去除wav文件头
+          this.bufferSize = 44;
+          let base64 = new util.Base64Helper();
+          this.arrayBuffer = base64.decodeSync(audioData).buffer;
+
+          // 启动渲染
+          (this.renderModel as audio.AudioRenderer).start((err: BusinessError) => {
+            if (err) {
+              console.error('Renderer start failed.');
+              startCallback(new StartPlayCallback(0));
+            } else {
+              console.info('Renderer start success.');
+              startCallback(new StartPlayCallback(1));
+              this.stopPlayCallback = stopCallback;
+            }
+          });
+        }
+      } else {
+        console.info(`${TAG}: creating AudioRenderer failed, error: ${err.message}`);
+        startCallback(new StartPlayCallback(0));
+      }
+    });
+  }
+
+  static StopPlay(){
+    if (this.renderModel !== undefined) {
+      // 只有渲染器状态为running或paused的时候才可以停止
+      if ((this.renderModel as audio.AudioRenderer).state.valueOf() !== audio.AudioState.STATE_RUNNING && (this.renderModel as audio.AudioRenderer).state.valueOf() !== audio.AudioState.STATE_PAUSED) {
+        console.info('Renderer is not running or paused.');
+        return;
+      }
+      // 停止渲染
+      (this.renderModel as audio.AudioRenderer).stop((err: BusinessError) => {
+        if (err) {
+          console.error('Renderer stop failed.');
+        } else {
+          console.info('Renderer stop success.');
+          this.stopPlayCallback(new StopPlayCallback());
+        }
+        // 渲染器状态不是released状态，才能release
+        if (this.renderModel.state.valueOf() === audio.AudioState.STATE_RELEASED) {
+          console.info('Renderer already released');
+          return;
+        }
+        // 释放资源
+        (this.renderModel as audio.AudioRenderer).release((err: BusinessError) => {
+          if (err) {
+            console.error('Renderer release failed.');
+          } else {
+            console.info('Renderer release success.');
+          }
+        });
+      });
+    }
+  }
+}
+
+export function RegisterNativeBridge() {
+  var register = {}
+  register["NetworkStatusClass"] = NetworkStatusClass;
+  register["AudioRecorderClass"] = AudioRecorderClass;
+  register["AudioPlayerClass"] = AudioPlayerClass;
+  register["AudioCapturerDeviceStatusClass"] = AudioCapturerDeviceStatusClass;
+  return register;
+}

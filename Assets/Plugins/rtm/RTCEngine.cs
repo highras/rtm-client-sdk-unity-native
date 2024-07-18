@@ -4,7 +4,11 @@ using System.Threading;
 using System.Runtime.InteropServices;
 using System;
 using AOT;
+#if UNITY_ANDROID
 using UnityEngine.Android;
+#elif UNITY_OPENHARMONY
+using UnityEngine.OpenHarmony;
+#endif
 using UnityEngine.Assertions;
 using System.Collections.Generic;
 
@@ -319,6 +323,45 @@ namespace com.fpnn.rtm
 #elif UNITY_IOS
             internalPermissionCallback = callback;
             requirePermission(requireMicrophone, requireCamera, PermissionCallback);
+#elif UNITY_OPENHARMONY
+            if (!requireMicrophone && !requireCamera)
+            { 
+                RTMControlCenter.callbackQueue.PostAction(() => {
+                    callback?.Invoke(PERMISSION_STATUS.DENIEDANDDONTASKAGAIN, PERMISSION_STATUS.DENIEDANDDONTASKAGAIN);
+                });
+            }
+            else
+            {
+                var callbacks = new PermissionCallbacks();
+                var openHarmonyPermission = new OpenHarmonyPermissionCallback();
+                callbacks.PermissionDenied += openHarmonyPermission.PermissionCallbacks_PermissionDenied;
+                callbacks.PermissionGranted += openHarmonyPermission.PermissionCallbacks_PermissionGranted;
+                openHarmonyPermission.callback = callback;
+
+                bool hasMicrophone = Permission.HasUserAuthorizedPermission(Permission.Microphone);
+                bool hasCamera = Permission.HasUserAuthorizedPermission(Permission.Camera);
+                openHarmonyPermission.requireMicrophone = requireMicrophone && !hasMicrophone;
+                openHarmonyPermission.requireCamera = requireCamera && !hasCamera;
+                if (requireMicrophone && hasMicrophone)
+                    openHarmonyPermission.microphone = PERMISSION_STATUS.GRANTED;
+                if (requireCamera && hasCamera)
+                    openHarmonyPermission.camera = PERMISSION_STATUS.GRANTED;
+
+                if (openHarmonyPermission.requireMicrophone && openHarmonyPermission.requireCamera)
+                    Permission.RequestUserPermissions(new string[] { Permission.Microphone, Permission.Camera }, callbacks);
+                else if (openHarmonyPermission.requireMicrophone)
+                    Permission.RequestUserPermissions(new string[] { Permission.Microphone }, callbacks);
+                else if (openHarmonyPermission.requireCamera)
+                    Permission.RequestUserPermissions(new string[] { Permission.Camera }, callbacks);
+                else
+                {
+                    RTMControlCenter.callbackQueue.PostAction(() => {
+                        callback?.Invoke(requireMicrophone?PERMISSION_STATUS.GRANTED:PERMISSION_STATUS.DENIED, requireCamera?PERMISSION_STATUS.GRANTED:PERMISSION_STATUS.DENIED);
+                    });
+                }
+            }
+
+ 
 #endif
         }
 
@@ -347,11 +390,16 @@ namespace com.fpnn.rtm
             int osVersion = version.GetStatic<int>("SDK_INT");
             AndroidJavaObject currentActivity = new AndroidJavaClass("com.unity3d.player.UnityPlayer").GetStatic<AndroidJavaObject>("currentActivity");
             IntPtr application = currentActivity.Call<AndroidJavaObject>("getApplicationContext").GetRawObject();
-            SetLogger(Log);
+            //SetLogger(Log);
 
             if (requirePermission)
                 RequirePermission(true, requireCamera, null);
             initRTCEngine(application, VoiceCallback, 1);
+#elif UNITY_OPENHARMONY
+            
+            if (requirePermission)
+                RequirePermission(true, requireCamera, null);
+            initRTCEngine(VoiceCallback, 2);
 #endif
 
             routineThread = new Thread(Routine);
@@ -363,8 +411,8 @@ namespace com.fpnn.rtm
 
         public static void InitVoice()
         {
-#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
-#elif UNITY_IOS || UNITY_ANDROID
+#if (UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+#elif UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_IOS || UNITY_ANDROID || UNITY_OPENHARMONY
             initVoice();
 #endif
         }
@@ -372,15 +420,15 @@ namespace com.fpnn.rtm
         public static void InitVideo(long uid)
         {
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
-#elif UNITY_IOS || UNITY_ANDROID
+#elif UNITY_IOS || UNITY_ANDROID || UNITY_OPENHARMONY
             initVideo(uid, VideoCallback);
 #endif
         }
 
         private static void CleanRTC()
         {
-#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
-#elif UNITY_IOS || UNITY_ANDROID
+#if (UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+#elif UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_IOS || UNITY_ANDROID || UNITY_OPENHARMONY
             cleanRTC();
 #endif
         }
@@ -406,7 +454,11 @@ namespace com.fpnn.rtm
         {
             while (running)
             {
-                Thread.Sleep(2000);
+                int count = 0;
+                while (count++ < 20 && running) 
+                    Thread.Sleep(100);
+                if (!running)
+                    break;
 
                 RTMClient client = null;
                 lock (interLocker)
@@ -446,7 +498,9 @@ namespace com.fpnn.rtm
                 if (buffer == null)
                     videoBufferEvent.WaitOne();
                 else
+                {
                     receiveVideo(buffer.uid, buffer.data, buffer.data.Length, buffer.sps, buffer.sps.Length, buffer.pps, buffer.pps.Length, buffer.flags, buffer.timestamp, buffer.seq, buffer.facing);
+                }
             }
         }
 
@@ -530,7 +584,7 @@ namespace com.fpnn.rtm
         {
             camera = true;
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
-#elif UNITY_IOS || UNITY_ANDROID
+#elif UNITY_IOS || UNITY_ANDROID || UNITY_OPENHARMONY
             RTCEngine.openCamera();
 #endif
         }
@@ -539,7 +593,7 @@ namespace com.fpnn.rtm
         {
             camera = false;
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
-#elif UNITY_IOS || UNITY_ANDROID
+#elif UNITY_IOS || UNITY_ANDROID || UNITY_OPENHARMONY
             RTCEngine.closeCamera();
 #endif
         }
@@ -550,7 +604,7 @@ namespace com.fpnn.rtm
                 return;
             frontCamera = !frontCamera;
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
-#elif UNITY_IOS || UNITY_ANDROID
+#elif UNITY_IOS || UNITY_ANDROID || UNITY_OPENHARMONY
             RTCEngine.switchCamera(frontCamera);
 #endif
         }
@@ -563,13 +617,13 @@ namespace com.fpnn.rtm
         public static void UnsubscribeVideo(long uid)
         {
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
-#elif UNITY_IOS || UNITY_ANDROID
+#elif UNITY_IOS || UNITY_ANDROID || UNITY_OPENHARMONY
             unsubscribeVideo(uid);
 #endif
         }
 
         public static void RTCPause()
-        { 
+        {
             closeVoicePlay();
             closeMicrophone();
             closeCamera();
@@ -669,7 +723,7 @@ namespace com.fpnn.rtm
         public static void ReceiveVideo(UInt64 connectionId, long uid, long seq, long flags, long timeStamp, long rotation, long version, int facing, int captureLevel, byte[] data, byte[] sps, byte[] pps)
         {
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
-#elif UNITY_IOS || UNITY_ANDROID
+#elif UNITY_IOS || UNITY_ANDROID || UNITY_OPENHARMONY
             if (StatusMonitor.IsBackground())
                 return;
             if (rtcClient == null)
@@ -709,7 +763,7 @@ namespace com.fpnn.rtm
         public static void GetVideoFrame(long uid, IntPtr data, ref int size, ref bool facing)
         {
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
-#elif UNITY_IOS || UNITY_ANDROID
+#elif UNITY_IOS || UNITY_ANDROID || UNITY_OPENHARMONY
             getVideoFrame(uid, data, ref size, ref facing);
 #endif
         }

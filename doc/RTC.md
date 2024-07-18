@@ -739,3 +739,148 @@ Return Values:
 	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
 
 	Others are the reason for calling failed.
+
+
+### Update Position
+
+	//-- Async Method
+	public bool UpdatePosition(DoneDelegate callback, long roomId, int x, int y, int z, int timeout = 0);
+	
+	//-- Sync Method
+	public int UpdatePosition(long roomId, int x, int y, int z, int timeout = 0);
+
+Update position.
+
+Parameters:
+
++ `Action<int> callback`
+
+	Callabck for async method.  
+	1. `int` is the error code indicating the calling is successful or the failed reasons.
+
++ `long roomId`
+
+	RTC room ID.
+
++ `int x`
+
+	x-coordinate
+
++ `int y`
+
+	y-coordinate
+
++ `int z`
+
+	z-coordinate
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async sending is start.
+	* false: Start async sending is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means sending successed.
+
+	Others are the reason for sending failed.
+
+
+### Set Voice Range
+
+	//-- Async Method
+	public bool SetVoiceRange(DoneDelegate callback, long roomId, int range, int timeout = 0);
+	
+	//-- Sync Method
+	public int SetVoiceRange(long roomId, int range, int timeout = 0);
+
+Set voice range.
+
+Parameters:
+
++ `Action<int> callback`
+
+	Callabck for async method.  
+	1. `int` is the error code indicating the calling is successful or the failed reasons.
+
++ `long roomId`
+
+	RTC room ID.
+
++ `int range`
+
+	The range of voice can be heard.
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async sending is start.
+	* false: Start async sending is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means sending successed.
+
+	Others are the reason for sending failed.
+
+### Set Max Receive Streams
+
+	//-- Async Method
+	public bool SetMaxReceiveStreams(DoneDelegate callback, long roomId, int maxReceiveStreams, int timeout = 0);
+	
+	//-- Sync Method
+	public int SetMaxReceiveStreams(long roomId, int maxReceiveStreams, int timeout = 0);
+
+Set max receive streams.
+
+Parameters:
+
++ `Action<int> callback`
+
+	Callabck for async method.  
+	1. `int` is the error code indicating the calling is successful or the failed reasons.
+
++ `long roomId`
+
+	RTC room ID.
+
++ `int maxReceiveStreams`
+
+	Maximum number of received streams. 
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async sending is start.
+	* false: Start async sending is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means sending successed.
+
+	Others are the reason for sending failed.

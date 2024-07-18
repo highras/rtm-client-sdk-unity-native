@@ -35,7 +35,7 @@ namespace com.fpnn
 #if (UNITY_ANDROID || UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
         [DllImport("fpnn")]
         private static extern void setRecvDataCallback(RecvDataDelegate callback);
-#elif UNITY_IOS
+#elif (UNITY_IOS || UNITY_OPENHARMONY)
         [DllImport("__Internal")]
         private static extern void setRecvDataCallback(RecvDataDelegate callback);
 #endif
@@ -126,7 +126,12 @@ namespace com.fpnn
             List<AnswerCallbackUnit> expiredCallbackList = new List<AnswerCallbackUnit>();
             while (running)
             {
-                Thread.Sleep(1000);
+                int count = 0;
+                while (count++ < 10 && running)
+                    Thread.Sleep(100);
+                if (!running)
+                    break;
+                
                 lock (interLocker)
                 {
                     foreach (KeyValuePair<UInt64, Client> kv in clientMap)

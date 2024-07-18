@@ -10,7 +10,7 @@ namespace com.fpnn.rtm
 
     public class RTMConfig
     {
-        public static readonly string SDKVersion = "1.1.11";
+        public static readonly string SDKVersion = "1.1.12";
         public static readonly string InterfaceVersion = "2.7.3";
         public static readonly string RTMGameObjectName = "RTM_GAMEOBJECT";
 
@@ -141,6 +141,7 @@ namespace com.fpnn.rtm
         InvalidRoom = 0,
         VoiceRoom = 1,
         VideoRoom = 2,
+        RangeVoiceRoom = 4,
     }
 
     public enum RTCP2PType : byte

@@ -129,7 +129,7 @@ namespace com.fpnn.rtm
              });
          }
          private static Action<PERMISSION_STATUS, PERMISSION_STATUS> internalPermissionCallback;
- #if (UNITY_ANDROID || UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+ #if (UNITY_ANDROID || UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX || UNITY_OPENHARMONY)
          [DllImport("RTCNative")]
          private static extern void initRTCEngine(VoiceCallbackDelegate callback, ActiveRoomCallbackDelegate activeRoomCallback, int channelNum);
  
@@ -180,7 +180,7 @@ namespace com.fpnn.rtm
  
          [DllImport("RTCNative")]
          internal static extern void unsubscribeVideo(long uid);
- #elif UNITY_IOS
+#elif UNITY_IOS 
          [DllImport("__Internal")]
          private static extern void initRTCEngine(VoiceCallbackDelegate callback, ActiveRoomCallbackDelegate activeRoomCallback, int channelNum);
  
@@ -232,12 +232,14 @@ namespace com.fpnn.rtm
          [DllImport("__Internal")]
          internal static extern void unsubscribeVideo(long uid);
  
+#if (!UNITY_OPENHARMONY)
          [DllImport("__Internal")]
          internal static extern void requirePermission(bool microphone, bool camera, PermissionCallbackDelegate callback);
- #else
- #endif
-        
-#if (UNITY_ANDROID)
+#endif
+#else
+#endif
+
+#if (UNITY_ANDROID || UNITY_OPENHARMONY)
          [DllImport("RTCNative")]
          private static extern void setUserVolume(long uid, int volume);
          
@@ -246,8 +248,8 @@ namespace com.fpnn.rtm
          
          [DllImport("RTCNative")]
          private static extern int getSendStreamVolume();
- #elif (UNITY_IOS)
-         [DllImport("__Internal")]
+#elif (UNITY_IOS)
+        [DllImport("__Internal")]
          private static extern void setUserVolume(long uid, int volume);
 
          [DllImport("__Internal")]
@@ -257,12 +259,12 @@ namespace com.fpnn.rtm
          private static extern int getSendStreamVolume();
 #endif
  
- #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
          [DllImport("RTCNative")]
          private static extern void destroy();
- #endif
+#endif
  
- #if UNITY_ANDROID
+#if UNITY_ANDROID
          [DllImport("RTCNative")]
          private static extern void initRTCEngine(IntPtr application, VoiceCallbackDelegate callback, int channelNum);
          //private static extern void initRTCEngine(IntPtr application, IntPtr focusObject, VoiceCallbackDelegate callback, int channelNum);
@@ -276,8 +278,8 @@ namespace com.fpnn.rtm
          [DllImport("RTCNative")]
          internal static extern void stopVoice();
  
-         [DllImport("RTCNative")]
-         public static extern void SetLogger(LoggerCallBack callback);
+         //[DllImport("RTCNative")]
+         //public static extern void SetLogger(LoggerCallBack callback);
  
          class AudioFocusListener : AndroidJavaProxy
          {
@@ -366,6 +368,71 @@ namespace com.fpnn.rtm
                  CheckFinish();
              }
          }
- #endif       
+#endif
+
+#if UNITY_OPENHARMONY
+    [DllImport("RTCNative")]
+    private static extern void initRTCEngine(VoiceCallbackDelegate callback, int channelNum);
+
+    [DllImport("RTCNative")]
+    public static extern void headsetStat(int headsetType);
+
+        [DllImport("RTCNative")]
+    internal static extern void setBackground(bool flag);
+ 
+ 
+class OpenHarmonyPermissionCallback
+         {
+             internal PERMISSION_STATUS microphone = PERMISSION_STATUS.DENIED;
+             internal PERMISSION_STATUS camera = PERMISSION_STATUS.DENIED;
+             internal bool requireMicrophone = false;
+             internal bool requireCamera = false;
+             bool microphoneFinish = false;
+             bool cameraFinish = false;
+             internal Action<PERMISSION_STATUS, PERMISSION_STATUS> callback;
+ 
+             void CheckFinish()
+             {
+                 if (requireMicrophone && !microphoneFinish)
+                     return;
+                 if (requireCamera && !cameraFinish)
+                     return;
+                 RTMControlCenter.callbackQueue.PostAction(()=>
+                 { 
+                     callback?.Invoke(microphone, camera);
+                 });
+             }
+              
+             internal void PermissionCallbacks_PermissionGranted(string permissionName)
+             {
+                 if (permissionName == "ohos.permission.MICROPHONE")
+                 { 
+                     microphone = PERMISSION_STATUS.GRANTED;
+                     microphoneFinish = true;
+                 }
+                 else if (permissionName == "ohos.permission.CAMERA")
+                 { 
+                     camera = PERMISSION_STATUS.GRANTED;
+                     cameraFinish = true;
+                 }
+                 CheckFinish();
+             }
+ 
+             internal void PermissionCallbacks_PermissionDenied(string permissionName)
+             {
+                 if (permissionName == "ohos.permission.MICROPHONE")
+                 { 
+                     microphone = PERMISSION_STATUS.DENIED;
+                     microphoneFinish = true;
+                 }
+                 else if (permissionName == "ohos.permission.CAMERA")
+                 { 
+                     camera = PERMISSION_STATUS.DENIED;
+                     cameraFinish = true;
+                 }
+                 CheckFinish();
+             }
+         }
+#endif
     }
 }

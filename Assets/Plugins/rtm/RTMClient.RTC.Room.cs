@@ -28,7 +28,7 @@ namespace com.fpnn.rtm
             return roomList;
         }
 
-        public void CreateRTCRoom(Action<long, int> callback, long roomId, RTCRoomType roomType, int timeout = 0)
+        public void CreateRTCRoom(Action<long, int> callback, long roomId, RTCRoomType roomType, int voiceRange = -1, int maxReceiveStreams = -1, int timeout = 0)
         {
             if (RTCEngine.GetP2PCallId() != -1)
             {
@@ -73,7 +73,7 @@ namespace com.fpnn.rtm
                         {
                             callback(0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
                         });
-                }, roomId, roomType, timeout);
+                }, roomId, roomType, voiceRange, maxReceiveStreams, timeout);
                 if (!status && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
                     ClientEngine.RunTask(() =>
                     {
@@ -87,7 +87,7 @@ namespace com.fpnn.rtm
                 });
         }
 
-        public int CreateRTCRoom(long roomId, RTCRoomType roomType, int timeout = 0)
+        public int CreateRTCRoom(long roomId, RTCRoomType roomType, int voiceRange = -1, int maxReceiveStreams = -1, int timeout = 0)
         {
             if (RTCEngine.GetP2PCallId() != -1)
                 return ErrorCode.RTC_EC_ON_P2P;
@@ -95,7 +95,7 @@ namespace com.fpnn.rtm
             if (errorCode != fpnn.ErrorCode.FPNN_EC_OK)
                 return errorCode;
             BuildRTCGateClient(endpoint);
-            int errorCode2 = createRTCRoom(out string token, roomId, roomType, timeout);
+            int errorCode2 = createRTCRoom(out string token, roomId, roomType, voiceRange, maxReceiveStreams, timeout);
             if (errorCode2 != fpnn.ErrorCode.FPNN_EC_OK)
                 return errorCode2;
             int errorCode3 = enterRTCRoom((int)projectId, uid, roomId, token, out _, out _, out _, out _, timeout);
@@ -231,7 +231,7 @@ namespace com.fpnn.rtm
         }
 
         //===========================[ Create RTC Room ]=========================//
-        private bool createRTCRoom(Action<long, string, int> callback, long roomId, RTCRoomType roomType, int timeout = 0)
+        private bool createRTCRoom(Action<long, string, int> callback, long roomId, RTCRoomType roomType, int voiceRange = -1, int maxReceiveStreams = -1, int timeout = 0)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -249,6 +249,10 @@ namespace com.fpnn.rtm
             quest.Param("rid", roomId);
             quest.Param("type", (Int32)roomType);
             quest.Param("enableRecord", 0);
+            if (voiceRange != -1)
+                quest.Param("voiceRange", voiceRange);
+            if (maxReceiveStreams != -1)
+                quest.Param("maxReceiveStreams", maxReceiveStreams);
 
             bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
                 long rid = 0;
@@ -279,7 +283,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        private int createRTCRoom(out string token, long roomId, RTCRoomType roomType, int timeout = 0)
+        private int createRTCRoom(out string token, long roomId, RTCRoomType roomType, int voiceRange = -1, int maxReceiveStreams = -1, int timeout = 0)
         {
             token = null;
             TCPClient client = GetCoreClient();
@@ -290,6 +294,10 @@ namespace com.fpnn.rtm
             quest.Param("rid", roomId);
             quest.Param("type", (Int32)roomType);
             quest.Param("enableRecord", 0);
+            if (voiceRange != -1)
+                quest.Param("voiceRange", voiceRange);
+            if (maxReceiveStreams != -1)
+                quest.Param("maxReceiveStreams", maxReceiveStreams);
 
             Answer answer = client.SendQuest(quest, timeout);
             if (answer.IsException())

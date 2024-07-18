@@ -426,7 +426,11 @@ namespace com.fpnn.rtm
         {
             while (routineRunning)
             {
-                Thread.Sleep(1000);
+                int count = 0;
+                while (count++ < 10 && routineRunning)
+                    Thread.Sleep(100);
+                if (!routineRunning)
+                    break;
 
                 HashSet<RTMClient> clients;
                 try

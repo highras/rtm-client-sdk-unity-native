@@ -200,6 +200,7 @@ Using as the data of p2p & group conversation.
         InvalidRoom = 0,
         VoiceRoom = 1,
         VideoRoom = 2,
+        RangeVoiceRoom = 4,
     }
 
 Using as the type of the rtc rooms.

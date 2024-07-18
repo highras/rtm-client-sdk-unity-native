@@ -100,7 +100,7 @@ namespace com.fpnn
         public static extern void SetLogger(LoggerCallBack callback);
 
 
-#elif UNITY_IOS
+#elif (UNITY_IOS || UNITY_OPENHARMONY)
 
         [DllImport("__Internal")]
         protected static extern IntPtr createTCPClient(string host, int port, bool autoConnect);
