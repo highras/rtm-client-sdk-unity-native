@@ -35,6 +35,7 @@ public class ExportUnityPackage : MonoBehaviour
         exportedPackageAssetList.Add("Assets/Plugins/rtm");
         exportedPackageAssetList.Add("Assets/Plugins/x86");
         exportedPackageAssetList.Add("Assets/Plugins/x86_64");
+        exportedPackageAssetList.Add("Assets/Plugins/OpenHarmony");
         exportedPackageAssetList.Add("Assets/Plugins/HomePage.cs");
         exportedPackageAssetList.Add("Assets/Plugins/HomePage.unity");
         exportedPackageAssetList.Add("Assets/Plugins/P2PMode.cs");
