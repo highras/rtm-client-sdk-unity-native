@@ -80,6 +80,24 @@ namespace com.fpnn.rtm
             AndroidNativeManager.Call("registerNetChange", context, new NetChangeListener(netChangeCallback));
             AndroidNativeManager.Call("registerHeadsetChange", context, new HeadsetListener(headersetCallback));
         }
+#elif UNITY_OPENHARMONY
+        private void NetworkChangedCallback(params OpenHarmonyJSObject[] args)
+        {
+            int status = args[0].Get<int>("status");
+            RTMControlCenter.NetworkChanged((NetworkType)status);
+        }  
+
+        private void AudioDeviceChangedCallback(params OpenHarmonyJSObject[] args)
+        {
+            int status = args[0].Get<int>("status");
+            UnityEngine.Debug.Log("AudioDeviceChangedCallback " + status);
+            if (RTCEngine.GetActiveRoomId() == -1 && RTCEngine.GetP2PCallId() == -1)
+                return;
+            ClientEngine.RunTask(() =>
+            {
+                RTCEngine.headsetStat(status == 0 ? 1 : 0);
+            });
+        }
 #else
 #endif
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -115,9 +133,17 @@ namespace com.fpnn.rtm
             initNetworkStatusChecker(NetworkStatusCallback);
 #elif UNITY_ANDROID
             initNetworkStatusChecker(NetworkStatusCallback, HeadsetStatusCallback);
+#elif UNITY_OPENHARMONY
+            
+            OpenHarmonyJSCallback callback = new OpenHarmonyJSCallback(NetworkChangedCallback);
+            OpenHarmonyJSClass openHarmonyJSClass = new OpenHarmonyJSClass("NetworkStatusClass");
+            openHarmonyJSClass.CallStatic("initNetworkStatus", callback);
+
+            OpenHarmonyJSCallback deviceCallback = new OpenHarmonyJSCallback(AudioDeviceChangedCallback);
+            OpenHarmonyJSClass deviceOpenHarmonyJSClass = new OpenHarmonyJSClass("AudioCapturerDeviceStatusClass");
+            deviceOpenHarmonyJSClass.CallStatic("initAudioCapturerDeviceStatus", deviceCallback);
 #endif
         }
-
         public void Close() 
         {
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
@@ -163,7 +189,9 @@ namespace com.fpnn.rtm
                 if (_isBackground == false)
                 {
                     _isBackground = true;
-#if UNITY_ANDROID
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX || UNITY_IOS)
+
+#elif (UNITY_ANDROID || UNITY_OPENHARMONY)
                     if (RTCEngine.GetActiveRoomId() != -1 || RTCEngine.GetP2PCallId() != -1)
                     {
                         ClientEngine.RunTask(() =>
@@ -180,7 +208,8 @@ namespace com.fpnn.rtm
                 if (_isBackground)
                 {
                     _isBackground = false;
-#if UNITY_ANDROID
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX || UNITY_IOS)
+#elif UNITY_ANDROID || UNITY_OPENHARMONY
                     if (RTCEngine.GetActiveRoomId() != -1 || RTCEngine.GetP2PCallId() != -1)
                     {
                         ClientEngine.RunTask(() =>

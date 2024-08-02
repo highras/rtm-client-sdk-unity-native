@@ -29,6 +29,17 @@ namespace com.fpnn.rtm
             [DllImport("__Internal")]
             public static extern void free_memory(IntPtr ptr);
 
+#elif (UNITY_OPENHARMONY)
+
+            [DllImport("__Internal")]
+            public static extern IntPtr convert_wav_to_amrwb(IntPtr wavSrc, int wavSrcSize, ref int status, ref int amrSize);
+
+            [DllImport("__Internal")]
+            public static extern IntPtr convert_amrwb_to_wav(IntPtr amrSrc, int amrSrcSize, ref int status, ref int wavSize);
+
+            [DllImport("__Internal")]
+            public static extern void audio_convert_free_memory(IntPtr ptr);
+
 #endif
 
         public static byte[] ConvertToAmrwb(byte[] wavBuffer)
@@ -46,12 +57,12 @@ namespace com.fpnn.rtm
             if (amrPtr != null && status == 0) {
                 byte[] amrBuffer = new byte[amrSize];
                 Marshal.Copy(amrPtr, amrBuffer, 0, amrSize);
-                AudioConvert.free_memory(amrPtr);
+                FreeMemory(amrPtr);
                 return amrBuffer;
             }
 
             if (amrPtr != null)
-                AudioConvert.free_memory(amrPtr);
+                FreeMemory(amrPtr);
 
             return null;
         }
@@ -60,7 +71,7 @@ namespace com.fpnn.rtm
         {
             int status = 0;
             int wavSize = 0;
-            
+
             IntPtr amrSrcPtr = Marshal.AllocHGlobal(amrBuffer.Length);
             Marshal.Copy(amrBuffer, 0, amrSrcPtr, amrBuffer.Length);
 
@@ -71,14 +82,23 @@ namespace com.fpnn.rtm
             if (wavPtr != null && status == 0) {
                 byte[] wavBuffer = new byte[wavSize];
                 Marshal.Copy(wavPtr, wavBuffer, 0, wavSize);
-                AudioConvert.free_memory(wavPtr);
+                FreeMemory(wavPtr);
                 return wavBuffer;
             }
 
             if (wavPtr != null)
-                AudioConvert.free_memory(wavPtr);
+                FreeMemory(wavPtr);
 
             return null;
+        }
+
+        public static void FreeMemory(IntPtr ptr)
+        {
+#if (UNITY_OPENHARMONY && !UNITY_EDITOR_WIN && !UNITY_EDITOR_OSX)
+            AudioConvert.audio_convert_free_memory(ptr);
+#else
+            AudioConvert.free_memory(ptr);
+#endif
         }
     }
 }

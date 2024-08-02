@@ -207,6 +207,85 @@ namespace com.fpnn.rtm
             }
         }
         static AndroidJavaObject AudioRecord = null;
+
+#elif UNITY_OPENHARMONY
+        private static void startRecordCallbackMethod(params OpenHarmonyJSObject[] args)
+        {
+            bool success = (args[0].Get<int>("success") != 0);
+            StartRecordCallback(success);
+        }
+
+        private static void volumeCallbackMethod(params OpenHarmonyJSObject[] args)
+        {
+            float volume = args[0].Get<float>("volume");
+            audioRecorderListener?.OnVolumn(volume);
+        }
+
+        private static void startRecord()
+        {
+            OpenHarmonyJSCallback volumeCallback = new OpenHarmonyJSCallback(volumeCallbackMethod);
+            OpenHarmonyJSCallback startRecordCallback = new OpenHarmonyJSCallback(startRecordCallbackMethod);
+            OpenHarmonyJSClass openHarmonyJSClass = new OpenHarmonyJSClass("AudioRecorderClass");
+            openHarmonyJSClass.CallStatic("StartRecord", volumeCallback, startRecordCallback);
+        }
+
+        private static void stopRecordCallbackMethod(params OpenHarmonyJSObject[] args)
+        {
+            string arrayBuffer = args[0].Get<string>("audioData");
+            byte[] payload = Convert.FromBase64String(arrayBuffer);
+            recording = false;
+            if (audioRecorderListener != null)
+            {
+                audioRecorderListener.RecordEnd();
+                if (cancelRecord)
+                {
+                    cancelRecord = false;
+                    return;
+                }
+                if (payload.Length == 0)
+                {
+                    return;
+                }
+                int duration = payload.Length*1000/AudioRecorder.RECORD_SAMPLE_RATE;
+                byte[] byteWav = AudioRecorderNative.WriteWav(payload);
+                RTMAudioData audioData = new RTMAudioData(AudioConvert.ConvertToAmrwb(byteWav), language, duration);
+                audioRecorderListener.OnRecord(audioData);
+            }
+        }
+
+        private static void stopRecord()
+        {
+            OpenHarmonyJSCallback stopRecordCallback = new OpenHarmonyJSCallback(stopRecordCallbackMethod);
+            OpenHarmonyJSClass openHarmonyJSClass = new OpenHarmonyJSClass("AudioRecorderClass");
+            openHarmonyJSClass.CallStatic("StopRecord", stopRecordCallback);
+        }
+
+        private static void startPlayCallbackMethod(params OpenHarmonyJSObject[] args)
+        {
+            bool success = (args[0].Get<int>("success") != 0);
+            PlayStartCallback(success);
+        }
+
+        private static void stopPlayCallbackMethod(params OpenHarmonyJSObject[] args)
+        {
+            PlayFinishCallback();
+        }
+
+        private static void startPlay(byte[] audioData)
+        {
+            string audio = Convert.ToBase64String(audioData);
+            OpenHarmonyJSCallback startPlayCallback = new OpenHarmonyJSCallback(startPlayCallbackMethod);
+            OpenHarmonyJSCallback stoplayCallback = new OpenHarmonyJSCallback(stopPlayCallbackMethod);
+            OpenHarmonyJSClass openHarmonyJSClass = new OpenHarmonyJSClass("AudioPlayerClass");
+            openHarmonyJSClass.CallStatic("StartPlay", audio, startPlayCallback, stoplayCallback);
+        }
+
+        private static void stopPlay()
+        {
+            OpenHarmonyJSClass openHarmonyJSClass = new OpenHarmonyJSClass("AudioPlayerClass");
+            openHarmonyJSClass.CallStatic("StopPlay");
+        }
+
 #endif
 
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
@@ -252,6 +331,8 @@ namespace com.fpnn.rtm
 #elif UNITY_ANDROID
             if (AudioRecord != null)
                 AudioRecord.Call("startRecord");
+#elif UNITY_OPENHARMONY
+            startRecord();
 #else
             startRecord(VolumnCallback, StartRecordCallback);
 #endif
@@ -282,6 +363,8 @@ namespace com.fpnn.rtm
                 RTMAudioData data = new RTMAudioData(audioData, language, duration);
                 audioRecorderListener.OnRecord(data);
             }
+#elif UNITY_OPENHARMONY
+            stopRecord();
 #else
             stopRecord(StopRecordCallback);
 #endif
@@ -304,6 +387,8 @@ namespace com.fpnn.rtm
 #elif UNITY_ANDROID
             if (AudioRecord != null)
                 AudioRecord.Call("broadAudio", AudioConvert.ConvertToWav(data.Audio));
+#elif UNITY_OPENHARMONY
+            startPlay(AudioConvert.ConvertToWav(data.Audio));
 #else
             startPlay(data.Audio, data.Audio.Length, PlayFinishCallback, PlayStartCallback);
 #endif
@@ -316,9 +401,64 @@ namespace com.fpnn.rtm
 #elif UNITY_ANDROID
             if (AudioRecord != null)
                 AudioRecord.Call("stopAudio");
+#elif UNITY_OPENHARMONY
+            stopPlay();
 #else
             stopPlay();
 #endif
+        }
+
+        static public byte[] WriteWav(byte[] payload)
+        {
+            MemoryStream stream = new MemoryStream();
+            int hz = AudioRecorder.RECORD_SAMPLE_RATE;
+            int channels = 1;
+
+            stream.Seek(0, SeekOrigin.Begin);
+
+            Byte[] riff = System.Text.Encoding.UTF8.GetBytes("RIFF");
+            stream.Write(riff, 0, 4);
+
+            Byte[] chunkSize = BitConverter.GetBytes(payload.Length + 36);
+            stream.Write(chunkSize, 0, 4);
+
+            Byte[] wave = System.Text.Encoding.UTF8.GetBytes("WAVE");
+            stream.Write(wave, 0, 4);
+
+            Byte[] fmt = System.Text.Encoding.UTF8.GetBytes("fmt ");
+            stream.Write(fmt, 0, 4);
+
+            Byte[] subChunk1 = BitConverter.GetBytes(16);
+            stream.Write(subChunk1, 0, 4);
+            UInt16 one = 1;
+            Byte[] audioFormat = BitConverter.GetBytes(one);
+            stream.Write(audioFormat, 0, 2);
+
+            Byte[] numChannels = BitConverter.GetBytes(channels);
+            stream.Write(numChannels, 0, 2);
+
+            Byte[] sampleRate = BitConverter.GetBytes(hz);
+            stream.Write(sampleRate, 0, 4);
+
+            Byte[] byteRate = BitConverter.GetBytes(hz * channels *2);
+            stream.Write(byteRate, 0, 4);
+
+            UInt16 blockAlign = (ushort)(channels);
+            stream.Write(BitConverter.GetBytes(blockAlign), 0, 2);
+
+            UInt16 bps = 16;
+            Byte[] bitsPerSample = BitConverter.GetBytes(bps);
+            stream.Write(bitsPerSample, 0, 2);
+
+            Byte[] datastring = System.Text.Encoding.UTF8.GetBytes("data");
+            stream.Write(datastring, 0, 4);
+
+            Byte[] subChunk2 = BitConverter.GetBytes(payload.Length);
+            stream.Write(subChunk2, 0, 4);
+
+            stream.Write(payload, 0, payload.Length);
+
+            return stream.ToArray();
         }
     }
 }
