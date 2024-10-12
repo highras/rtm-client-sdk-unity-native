@@ -24,7 +24,7 @@ public class RoomMode : MonoBehaviour
     GameObject Target2_RawImage;
     GameObject Target3_RawImage;
     GameObject Target4_RawImage;
-    VideoSurface[] VideoSurfaceList = new VideoSurface[5];
+    //VideoSurface[] VideoSurfaceList = new VideoSurface[5];
 
     //List<string> roomList = new List<string>();
     //int activeRoomIndex = -1;
@@ -51,20 +51,20 @@ public class RoomMode : MonoBehaviour
         SwitchCamera_Toggle = GameObject.Find("SwitchCamera_Toggle").GetComponent<Toggle>();
         SwitchCamera_Toggle.onValueChanged.AddListener(SwitchCamera_Toggle_OnClick);
         Self_RawImage = GameObject.Find("Self_RawImage");
-        VideoSurface selfVideoSurface = Self_RawImage.AddComponent<VideoSurface>();
-        VideoSurfaceList[0] = selfVideoSurface;
-        Target1_RawImage = GameObject.Find("Target1_RawImage");
-        VideoSurface target1VideoSurface = Target1_RawImage.AddComponent<VideoSurface>();
-        VideoSurfaceList[1] = target1VideoSurface;
-        Target2_RawImage = GameObject.Find("Target2_RawImage");
-        VideoSurface target2VideoSurface = Target2_RawImage.AddComponent<VideoSurface>();
-        VideoSurfaceList[2] = target2VideoSurface;
-        Target3_RawImage = GameObject.Find("Target3_RawImage");
-        VideoSurface target3VideoSurface = Target3_RawImage.AddComponent<VideoSurface>();
-        VideoSurfaceList[3] = target3VideoSurface;
-        Target4_RawImage = GameObject.Find("Target4_RawImage");
-        VideoSurface target4VideoSurface = Target4_RawImage.AddComponent<VideoSurface>();
-        VideoSurfaceList[4] = target4VideoSurface;
+        //VideoSurface selfVideoSurface = Self_RawImage.AddComponent<VideoSurface>();
+        //VideoSurfaceList[0] = selfVideoSurface;
+        //Target1_RawImage = GameObject.Find("Target1_RawImage");
+        //VideoSurface target1VideoSurface = Target1_RawImage.AddComponent<VideoSurface>();
+        //VideoSurfaceList[1] = target1VideoSurface;
+        //Target2_RawImage = GameObject.Find("Target2_RawImage");
+        //VideoSurface target2VideoSurface = Target2_RawImage.AddComponent<VideoSurface>();
+        //VideoSurfaceList[2] = target2VideoSurface;
+        //Target3_RawImage = GameObject.Find("Target3_RawImage");
+        //VideoSurface target3VideoSurface = Target3_RawImage.AddComponent<VideoSurface>();
+        //VideoSurfaceList[3] = target3VideoSurface;
+        //Target4_RawImage = GameObject.Find("Target4_RawImage");
+        //VideoSurface target4VideoSurface = Target4_RawImage.AddComponent<VideoSurface>();
+        //VideoSurfaceList[4] = target4VideoSurface;
 
         System.Random random = new System.Random();
         UID_InputField.text = random.Next(1000, 10000).ToString();
@@ -105,7 +105,7 @@ public class RoomMode : MonoBehaviour
         processor.PushExitRTCRoomCallback = (long roomId_, long uid_, long mtime_) => { 
             Debug.Log("pushExitRTCRoomCallback");
             Update_Subscribe_Dropdown();
-            DisableVideoSurface(uid_);
+            //DisableVideoSurface(uid_);
         };
 
         processor.SessionClosedCallback = (int ClosedByErrorCode) =>
@@ -312,12 +312,12 @@ public class RoomMode : MonoBehaviour
         if (isOn)
         {
             RTCEngine.OpenCamera();
-            EnableVideoSurface(HomePage.client.Uid);
+            //EnableVideoSurface(HomePage.client.Uid);
         }
         else
         {
             RTCEngine.CloseCamera();
-            DisableVideoSurface(HomePage.client.Uid);
+            //DisableVideoSurface(HomePage.client.Uid);
         }
     }
 
@@ -347,72 +347,72 @@ public class RoomMode : MonoBehaviour
     }
 
 
-    bool CheckVideoSurface()
-    {
-        for (int i = 1; i <= 4; ++i)
-        {
-            if (VideoSurfaceList[i].Uid() == 0)
-                return true;
-        }
-        return false;
-    }
+    //bool CheckVideoSurface()
+    //{
+    //    for (int i = 1; i <= 4; ++i)
+    //    {
+    //        if (VideoSurfaceList[i].Uid() == 0)
+    //            return true;
+    //    }
+    //    return false;
+    //}
 
-    void EnableVideoSurface(long uid)
-    {
-        if (uid == HomePage.client.Uid)
-        {
-            if (VideoSurfaceList[0].Uid() != 0)
-                return;
-            VideoSurfaceList[0].SetVideoInfo(uid, true);
-        }
-        else
-        {
-            for (int i = 1; i <= 4; ++i)
-            {
-                if (VideoSurfaceList[i].Uid() == 0)
-                {
-                    VideoSurfaceList[i].SetVideoInfo(uid, false);
-                    return;
-                }
-            }
-        }
-    }
+    //void EnableVideoSurface(long uid)
+    //{
+    //    if (uid == HomePage.client.Uid)
+    //    {
+    //        if (VideoSurfaceList[0].Uid() != 0)
+    //            return;
+    //        VideoSurfaceList[0].SetVideoInfo(uid, true);
+    //    }
+    //    else
+    //    {
+    //        for (int i = 1; i <= 4; ++i)
+    //        {
+    //            if (VideoSurfaceList[i].Uid() == 0)
+    //            {
+    //                VideoSurfaceList[i].SetVideoInfo(uid, false);
+    //                return;
+    //            }
+    //        }
+    //    }
+    //}
 
-    void DisableVideoSurface(long uid)
-    {
-        if (uid == HomePage.client.Uid)
-        {
-            VideoSurfaceList[0].ClearVideoInfo();
-        }
-        else
-        {
-            for (int i = 1; i <= 4; ++i)
-            {
-                if (VideoSurfaceList[i].Uid() == uid)
-                {
-                    VideoSurfaceList[i].ClearVideoInfo();
-                    return;
-                }
-            }
-        }
-    }
+    //void DisableVideoSurface(long uid)
+    //{
+    //    if (uid == HomePage.client.Uid)
+    //    {
+    //        VideoSurfaceList[0].ClearVideoInfo();
+    //    }
+    //    else
+    //    {
+    //        for (int i = 1; i <= 4; ++i)
+    //        {
+    //            if (VideoSurfaceList[i].Uid() == uid)
+    //            {
+    //                VideoSurfaceList[i].ClearVideoInfo();
+    //                return;
+    //            }
+    //        }
+    //    }
+    //}
 
     public void Subscribe_Button_OnClick()
     {
         if (Subscribe_Dropdown.value < 0)
             return;
         long memberId = Convert.ToInt64(Subscribe_Dropdown.options[Subscribe_Dropdown.value].text);
-        if (CheckVideoSurface() == false)
-        {
-            AddLog("Can't subscribe more members.");
-            return;
-        }
+        //if (CheckVideoSurface() == false)
+        //{
+        //    AddLog("Can't subscribe more members.");
+        //    return;
+        //}
         HomePage.client.SubscribeVideo((int errorCode) => {
             RTMControlCenter.callbackQueue.PostAction(() =>
             {
                 if (errorCode == 0)
                 {
-                    EnableVideoSurface(memberId);
+                    //EnableVideoSurface(memberId);
                     AddLog("Subscribe " + memberId + " succeed.");
                     Debug.Log("Subscribe " + memberId + " succeed.");
                 }
@@ -434,7 +434,7 @@ public class RoomMode : MonoBehaviour
             {
                 if (errorCode == 0)
                 {
-                    DisableVideoSurface(memberId);
+                    //DisableVideoSurface(memberId);
                     AddLog("Unsubscribe " + memberId + " succeed.");
                     Debug.Log("Unsubscribe " + memberId + " succeed.");
                 }

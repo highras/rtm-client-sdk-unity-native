@@ -18,8 +18,8 @@ public class P2PMode : MonoBehaviour
     Toggle SwitchCamera_Toggle;
     GameObject Self_RawImage;
     GameObject Target_RawImage;
-    VideoSurface Self_VideoSurface = new VideoSurface();
-    VideoSurface Target_VideoSurface = new VideoSurface();
+    //VideoSurface Self_VideoSurface = new VideoSurface();
+    //VideoSurface Target_VideoSurface = new VideoSurface();
     Text Log_Text;
     int lines = 0;
 
@@ -45,10 +45,10 @@ public class P2PMode : MonoBehaviour
         Camera_Toggle.onValueChanged.AddListener(Camera_Toggle_OnClick);
         SwitchCamera_Toggle = GameObject.Find("SwitchCamera_Toggle").GetComponent<Toggle>();
         SwitchCamera_Toggle.onValueChanged.AddListener(SwitchCamera_Toggle_OnClick);
-        Self_RawImage = GameObject.Find("Self_RawImage");
-        Self_VideoSurface = Self_RawImage.AddComponent<VideoSurface>();
-        Target_RawImage = GameObject.Find("Target_RawImage");
-        Target_VideoSurface = Target_RawImage.AddComponent<VideoSurface>();
+        //Self_RawImage = GameObject.Find("Self_RawImage");
+        //Self_VideoSurface = Self_RawImage.AddComponent<VideoSurface>();
+        //Target_RawImage = GameObject.Find("Target_RawImage");
+        //Target_VideoSurface = Target_RawImage.AddComponent<VideoSurface>();
         Log_Text = GameObject.Find("Log_ScrollView/Viewport/Content/Text").GetComponent<Text>();
 
         System.Random random = new System.Random();
@@ -160,8 +160,8 @@ public class P2PMode : MonoBehaviour
             currentUID = receiveUID;
             requestingCallID = 0;
             Push_Text.text = currentUID.ToString() + " is calling";
-            if (Target_VideoSurface.Uid() == 0)
-                Target_VideoSurface.SetVideoInfo(currentUID, false);
+            //if (Target_VideoSurface.Uid() == 0)
+            //    Target_VideoSurface.SetVideoInfo(currentUID, false);
             Microphone_Toggle.isOn = true;
             VoicePlay_Toggle.isOn = true;
         }
@@ -223,14 +223,14 @@ public class P2PMode : MonoBehaviour
         if (isOn)
         {
             RTCEngine.OpenCamera();
-            if (Self_VideoSurface.Uid() != 0)
-                return;
-            Self_VideoSurface.SetVideoInfo(HomePage.client.Uid, true);
+            //if (Self_VideoSurface.Uid() != 0)
+            //    return;
+            //Self_VideoSurface.SetVideoInfo(HomePage.client.Uid, true);
         }
         else
         {
             RTCEngine.CloseCamera();
-            Self_VideoSurface.ClearVideoInfo();
+            //Self_VideoSurface.ClearVideoInfo();
         }
     }
 
@@ -257,7 +257,7 @@ public class P2PMode : MonoBehaviour
             Microphone_Toggle.isOn = false;
             VoicePlay_Toggle.isOn = false;
             Camera_Toggle.isOn = false;
-            Target_VideoSurface.ClearVideoInfo();
+            //Target_VideoSurface.ClearVideoInfo();
         }
         else
         {
@@ -297,7 +297,7 @@ public class P2PMode : MonoBehaviour
             Microphone_Toggle.isOn = false;
             VoicePlay_Toggle.isOn = false;
             Camera_Toggle.isOn = false;
-            Target_VideoSurface.ClearVideoInfo();
+            //Target_VideoSurface.ClearVideoInfo();
             Push_Text.text = "";
         }
         else if (p2pEvent == RTCP2PEvent.Accpet)
@@ -306,8 +306,8 @@ public class P2PMode : MonoBehaviour
             currentUID = peerUid;
             requestingCallID = 0;
             Push_Text.text = peerUid.ToString() + " is calling";
-            if (Target_VideoSurface.Uid() == 0)
-                Target_VideoSurface.SetVideoInfo(currentUID, false);
+            //if (Target_VideoSurface.Uid() == 0)
+            //    Target_VideoSurface.SetVideoInfo(currentUID, false);
             Microphone_Toggle.isOn = true;
             VoicePlay_Toggle.isOn = true;
         }

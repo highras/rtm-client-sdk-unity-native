@@ -405,8 +405,8 @@ namespace com.fpnn.rtm
             routineThread = new Thread(Routine);
             routineThread.Start();
 
-            videoBufferThread = new Thread(VideoBufferRoutine);
-            videoBufferThread.Start();
+            //videoBufferThread = new Thread(VideoBufferRoutine);
+            //videoBufferThread.Start();
         }
 
         public static void InitVoice()
@@ -440,6 +440,7 @@ namespace com.fpnn.rtm
             running = false;
             closeMicrophone();
             closeVoicePlay();
+            CleanRTC();
 
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
             destroy();
@@ -478,31 +479,31 @@ namespace com.fpnn.rtm
             }
         }
 
-        private static void VideoBufferRoutine()
-        { 
-            while (running)
-            {
-                VideoBuffer buffer = null;
-                lock (interLocker)
-                { 
-                    foreach (var bufferList in videoBufferList)
-                    {
-                        if (bufferList.Value.Count > videoBufferSize)
-                        {
-                            buffer = bufferList.Value.Values[0];
-                            bufferList.Value.RemoveAt(0);
-                            break;
-                        }
-                    }
-                }
-                if (buffer == null)
-                    videoBufferEvent.WaitOne();
-                else
-                {
-                    receiveVideo(buffer.uid, buffer.data, buffer.data.Length, buffer.sps, buffer.sps.Length, buffer.pps, buffer.pps.Length, buffer.flags, buffer.timestamp, buffer.seq, buffer.facing);
-                }
-            }
-        }
+        //private static void VideoBufferRoutine()
+        //{ 
+        //    while (running)
+        //    {
+        //        VideoBuffer buffer = null;
+        //        lock (interLocker)
+        //        { 
+        //            foreach (var bufferList in videoBufferList)
+        //            {
+        //                if (bufferList.Value.Count > videoBufferSize)
+        //                {
+        //                    buffer = bufferList.Value.Values[0];
+        //                    bufferList.Value.RemoveAt(0);
+        //                    break;
+        //                }
+        //            }
+        //        }
+        //        if (buffer == null)
+        //            videoBufferEvent.WaitOne();
+        //        else
+        //        {
+        //            receiveVideo(buffer.uid, buffer.data, buffer.data.Length, buffer.sps, buffer.sps.Length, buffer.pps, buffer.pps.Length, buffer.flags, buffer.timestamp, buffer.seq, buffer.facing);
+        //        }
+        //    }
+        //}
 
         public static void OpenMicroPhone()
         {
