@@ -446,9 +446,9 @@ namespace com.fpnn.rtm
             destroy();
 #endif
             routineThread.Join();
-            videoBufferEvent.Set();
-            videoBufferThread.Join();
-            videoBufferEvent.Close();
+            // videoBufferEvent.Set();
+            // videoBufferThread.Join();
+            // videoBufferEvent.Close();
         }
 
         private static void Routine()
