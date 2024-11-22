@@ -127,5 +127,87 @@ namespace com.fpnn.rtm
 
             return answer.ErrorCode();
         }
+        
+        public bool StartAudit(DoneDelegate callback, string checkParams = null, int timeout = 0)
+        {
+            Client client = GetRTCClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+        
+                return false;
+            }
+        
+            Quest quest = new Quest("startAudit");
+            if (checkParams != null)
+                quest.Param("checkParams", checkParams);
+        
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => { callback(errorCode); }, timeout);
+        
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+        
+            return asyncStarted;
+        }
+        
+        public int StartAudit(string checkParams = null, int timeout = 0)
+        {
+            Client client = GetRTCClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+        
+            Quest quest = new Quest("startAudit");
+            if (checkParams != null)
+                quest.Param("checkParams", checkParams);
+        
+            Answer answer = client.SendQuest(quest, timeout);
+            return answer.ErrorCode();
+        }
+        
+        public bool StopAudit(DoneDelegate callback, int timeout = 0)
+        {
+            Client client = GetRTCClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+                
+                return false;
+            }
+                
+            Quest quest = new Quest("stopAudit");
+                
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => { callback(errorCode); }, timeout);
+                
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+                
+            return asyncStarted;
+        }
+                
+        public int StopAudit(int timeout = 0)
+        {
+            Client client = GetRTCClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+                
+            Quest quest = new Quest("stopAudit");
+                
+            Answer answer = client.SendQuest(quest, timeout);
+            return answer.ErrorCode();
+        }
     }
 }
