@@ -150,7 +150,10 @@ namespace com.fpnn.rtm
          
          [DllImport("RTCNative")]
          private static extern void setVoicePlayVolume(int volume);
- 
+
+         [DllImport("RTCNative")]
+         internal static extern int getUserSoundIntensity(long uid);
+
          [DllImport("RTCNative")]
          private static extern void receiveVoice(long uid, long seq, byte[] data, int length);
  

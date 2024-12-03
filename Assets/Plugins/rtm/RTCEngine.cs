@@ -563,11 +563,13 @@ namespace com.fpnn.rtm
             setUserVolume(uid, volume);
 #endif
         }
-        
+
         public static int GetRecvStreamVolume(long uid)
         {
-#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+#if (UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
             return 0;
+#elif (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
+            return getUserSoundIntensity(uid);
 #else
             return getRecvStreamVolume(uid);
 #endif
