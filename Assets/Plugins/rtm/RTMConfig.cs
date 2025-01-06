@@ -10,7 +10,7 @@ namespace com.fpnn.rtm
 
     public class RTMConfig
     {
-        public static readonly string SDKVersion = "1.1.14";
+        public static readonly string SDKVersion = "1.1.15";
         public static readonly string InterfaceVersion = "2.7.3";
         public static readonly string RTMGameObjectName = "RTM_GAMEOBJECT";
 
