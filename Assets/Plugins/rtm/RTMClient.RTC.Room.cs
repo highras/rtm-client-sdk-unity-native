@@ -715,6 +715,76 @@ namespace com.fpnn.rtm
             return answer.ErrorCode();
         }
 
+        //===========================[ Get BlockInfo in RTC Room ]=========================//
+        public bool GetBlockInfoInRTCRoom(Action<HashSet<long>, int> callback, long roomId, int timeout = 0)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("getBlockInfoInRTCRoom");
+            quest.Param("rid", roomId);
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
+                HashSet<long> uids = null;
+
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                {
+                    try
+                    {
+                        uids = WantLongHashSet(answer, "uids");
+                    }
+                    catch (Exception)
+                    {
+                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+                    }
+                }
+                callback(uids, errorCode);
+
+            }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        public int GetBlockInfoInRTCRoom(out HashSet<long> uids, long roomId, int timeout = 0)
+        {
+            uids = null;
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("getBlockInfoInRTCRoom");
+            quest.Param("rid", roomId);
+
+            Answer answer = client.SendQuest(quest, timeout);
+            if (answer.IsException())
+                return answer.ErrorCode();
+
+            try
+            {
+                uids = WantLongHashSet(answer, "uids");
+                return fpnn.ErrorCode.FPNN_EC_OK;
+            }
+            catch (Exception)
+            {
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+            }
+        }
+
         //===========================[ Subscribe Video ]=========================//
         public bool SubscribeVideo(DoneDelegate callback, long roomId, HashSet<long> uids, int timeout = 0)
         { 
