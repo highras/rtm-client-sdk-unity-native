@@ -149,41 +149,41 @@ namespace com.fpnn.rtm
             }
         }
 
-        //public RTMClient(string endpoint, string rtcEndpoint, long projectId, long uid, RTMQuestProcessor serverPushProcessor, bool autoRelogin = true)
-        //{
-        //    interLocker = new object();
-        //    rtcInterLocker = new object();
-        //    this.projectId = projectId;
-        //    this.uid = uid;
-        //    status = ClientStatus.Closed;
-        //    requireClose = false;
-        //    syncConnectingEvent = new ManualResetEvent(false);
+        public RTMClient(string endpoint, string rtcEndpoint, long projectId, long uid, RTMQuestProcessor serverPushProcessor, bool autoRelogin = true)
+        {
+            interLocker = new object();
+            rtcInterLocker = new object();
+            this.projectId = projectId;
+            this.uid = uid;
+            status = ClientStatus.Closed;
+            requireClose = false;
+            syncConnectingEvent = new ManualResetEvent(false);
 
-        //    ConnectTimeout = 0;
-        //    QuestTimeout = 0;
+            ConnectTimeout = 0;
+            QuestTimeout = 0;
 
-        //    RTMMasterProcessor processorCurrent = new RTMMasterProcessor();
-        //    processorCurrent.SetProcessor(serverPushProcessor);
-        //    processor = processorCurrent;
+            RTMMasterProcessor processorCurrent = new RTMMasterProcessor();
+            processorCurrent.SetProcessor(serverPushProcessor);
+            processor = processorCurrent;
 
-        //    rtcProcessor = new RTCMasterProcessor();
+            rtcProcessor = new RTCMasterProcessor();
 
-        //    errorRecorder = RTMConfig.errorRecorder;
-        //    if (errorRecorder != null)
-        //    { 
-        //        processor.SetErrorRecorder(errorRecorder);
-        //        rtcProcessor.SetErrorRecorder(errorRecorder);
-        //    }
+            errorRecorder = RTMConfig.errorRecorder;
+            if (errorRecorder != null)
+            {
+                processor.SetErrorRecorder(errorRecorder);
+                rtcProcessor.SetErrorRecorder(errorRecorder);
+            }
 
-        //    BuildRtmGateClient(endpoint);
-        //    BuildRTCGateClient(rtcEndpoint);
+            BuildRtmGateClient(endpoint);
+            BuildRTCGateClient(rtcEndpoint);
 
-        //    if (autoRelogin)
-        //    {
-        //        autoReloginInfo = new AutoReloginInfo();
-        //        regressiveStrategy = RTMConfig.globalRegressiveStrategy;
-        //    }
-        //}
+            if (autoRelogin)
+            {
+                autoReloginInfo = new AutoReloginInfo();
+                regressiveStrategy = RTMConfig.globalRegressiveStrategy;
+            }
+        }
 
         private void reset(RTMQuestProcessor serverPushProcessor, bool autoRelogin)
         {
@@ -239,20 +239,20 @@ namespace com.fpnn.rtm
             return client;
         }
 
-        //public static RTMClient getInstance(string endpoint, string rtcEndpoint, long projectId, long uid, RTMQuestProcessor serverPushProcessor, bool autoRelogin = true)
-        //{
-        //    RTMClient client = RTMControlCenter.FetchClient(projectId, uid);
-        //    if (client != null)
-        //    {
-        //        client.reset(serverPushProcessor, autoRelogin);
-        //    }
-        //    else
-        //    {
-        //        client = new RTMClient(endpoint, rtcEndpoint, projectId, uid, serverPushProcessor, autoRelogin);
-        //        RTMControlCenter.AddClient(projectId, uid, client);
-        //    }
-        //    return client;
-        //}
+        public static RTMClient getInstance(string endpoint, string rtcEndpoint, long projectId, long uid, RTMQuestProcessor serverPushProcessor, bool autoRelogin = true)
+        {
+            RTMClient client = RTMControlCenter.FetchClient(projectId, uid);
+            if (client != null)
+            {
+                client.reset(serverPushProcessor, autoRelogin);
+            }
+            else
+            {
+                client = new RTMClient(endpoint, rtcEndpoint, projectId, uid, serverPushProcessor, autoRelogin);
+                RTMControlCenter.AddClient(projectId, uid, client);
+            }
+            return client;
+        }
 
         //-------------[ Fack Fields ]--------------------------//
 
