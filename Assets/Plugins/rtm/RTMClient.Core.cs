@@ -220,6 +220,15 @@ namespace com.fpnn.rtm
             //syncConnectingEvent.Reset();
         }
 
+        public void setQuestProcessor(RTMQuestProcessor serverPushProcessor)
+        {
+            lock (interLocker)
+            {
+                (processor as RTMMasterProcessor).SetProcessor(serverPushProcessor);
+            }
+        }
+
+
         public static RTMClient getInstance(string endpoint, long projectId, long uid, RTMQuestProcessor serverPushProcessor, bool autoRelogin = true)
         {
             RTMClient client = null;

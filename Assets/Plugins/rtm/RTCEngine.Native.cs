@@ -153,7 +153,7 @@ namespace com.fpnn.rtm
 
          [DllImport("RTCNative")]
          internal static extern int getUserSoundIntensity(long uid);
-
+ 
          [DllImport("RTCNative")]
          private static extern void receiveVoice(long uid, long seq, byte[] data, int length);
  
@@ -183,7 +183,7 @@ namespace com.fpnn.rtm
  
          [DllImport("RTCNative")]
          internal static extern void unsubscribeVideo(long uid);
-#elif UNITY_IOS 
+#elif UNITY_IOS
          [DllImport("__Internal")]
          private static extern void initRTCEngine(VoiceCallbackDelegate callback, ActiveRoomCallbackDelegate activeRoomCallback, int channelNum);
  
@@ -243,7 +243,7 @@ namespace com.fpnn.rtm
 #endif
 
 #if (UNITY_ANDROID || UNITY_OPENHARMONY)
-         [DllImport("RTCNative")]
+        [DllImport("RTCNative")]
          private static extern void setUserVolume(long uid, int volume);
          
          [DllImport("RTCNative")]
@@ -266,9 +266,13 @@ namespace com.fpnn.rtm
          [DllImport("RTCNative")]
          private static extern void destroy();
 #endif
- 
+
 #if UNITY_ANDROID
-         [DllImport("RTCNative")]
+
+        [DllImport("RTCNative")]
+        internal static extern void setDebugEnable(bool flag);
+
+        [DllImport("RTCNative")]
          private static extern void initRTCEngine(IntPtr application, VoiceCallbackDelegate callback, int channelNum);
          //private static extern void initRTCEngine(IntPtr application, IntPtr focusObject, VoiceCallbackDelegate callback, int channelNum);
  

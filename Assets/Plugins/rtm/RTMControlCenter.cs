@@ -458,6 +458,15 @@ namespace com.fpnn.rtm
             }
         }
 
+
+        public static void clear()
+        {
+            rtmClients.Clear();
+            pidUidClients.Clear();
+            reloginClients.Clear();
+            fileClients.Clear();
+        }
+
         public static void Close()
         {
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)

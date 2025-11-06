@@ -95,6 +95,7 @@ namespace com.fpnn.rtm
                     try
                     {
                         endpoint = answer.Want<string>("endpoint");
+                        Debug.Log("GetRTCEndpoint endpoint: " + endpoint);
                     }
                     catch (Exception)
                     {
@@ -127,7 +128,6 @@ namespace com.fpnn.rtm
 
             return answer.ErrorCode();
         }
-        
         public bool StartAudit(DoneDelegate callback, string checkParams = null, int timeout = 0)
         {
             Client client = GetRTCClient();

@@ -10,9 +10,10 @@ namespace com.fpnn.rtm
 
     public class RTMConfig
     {
-        public static readonly string SDKVersion = "1.1.18";
+        public static readonly string SDKVersion = "1.2.0";
         public static readonly string InterfaceVersion = "2.7.3";
         public static readonly string RTMGameObjectName = "RTM_GAMEOBJECT";
+        public static readonly bool IsDebugMode = false; // 是否开启调试模式
 
         internal static int lostConnectionAfterLastPingInSeconds = 60;
         internal static int globalConnectTimeoutSeconds = 30;

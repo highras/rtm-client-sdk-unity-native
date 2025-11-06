@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 3193691b554482140995e81f4914f940
+guid: BnscvHv7US6SAxeAD+HkYFS77d4kemrt+SHSTpazaxi1B+OTzdmFQaY=
 PluginImporter:
   externalObjects: {}
   serializedVersion: 2
@@ -12,16 +12,68 @@ PluginImporter:
   validateReferences: 1
   platformData:
   - first:
+      : Any
+    second:
+      enabled: 0
+      settings:
+        Exclude Android: 1
+        Exclude Editor: 1
+        Exclude Linux64: 1
+        Exclude OSXUniversal: 1
+        Exclude OpenHarmony: 0
+        Exclude Win: 1
+        Exclude Win64: 1
+  - first:
+      Android: Android
+    second:
+      enabled: 0
+      settings:
+        AndroidSharedLibraryType: Executable
+        CPU: ARMv7
+  - first:
       Any: 
     second:
-      enabled: 1
+      enabled: 0
       settings: {}
   - first:
       Editor: Editor
     second:
       enabled: 0
       settings:
+        CPU: AnyCPU
         DefaultValueInitialized: true
+        OS: AnyOS
+  - first:
+      OpenHarmony: OpenHarmony
+    second:
+      enabled: 1
+      settings:
+        CPU: ARM64
+        OpenHarmonySharedLibraryType: Executable
+  - first:
+      Standalone: Linux64
+    second:
+      enabled: 0
+      settings:
+        CPU: None
+  - first:
+      Standalone: OSXUniversal
+    second:
+      enabled: 0
+      settings:
+        CPU: None
+  - first:
+      Standalone: Win
+    second:
+      enabled: 0
+      settings:
+        CPU: None
+  - first:
+      Standalone: Win64
+    second:
+      enabled: 0
+      settings:
+        CPU: None
   userData: 
   assetBundleName: 
   assetBundleVariant: 

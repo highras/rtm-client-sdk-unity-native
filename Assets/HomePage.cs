@@ -11,9 +11,11 @@ using UnityEngine.UI;
 
 public class HomePage : MonoBehaviour
 {
-    public static long projectId = 11000002;
-    public static string rtmEndpoint = "161.189.171.91:13321";
+    public static long projectId = 0;
+    public static string rtmEndpoint = "";
     public static RTMClient client = null;
+    public static long uid = 0;
+    public static string token = "";
 
     public static string GetToken(long uid)
     {

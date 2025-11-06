@@ -92,10 +92,6 @@ public class RoomMode : MonoBehaviour
 
     public void Login_Button_OnClick()
     {
-        long uid = Convert.ToInt64(UID_InputField.text);
-        string token = Token_InputField.text;
-        if (token == "")
-            token = HomePage.GetToken(uid);
         example.common.RTMRTCQuestProcessor processor = new example.common.RTMRTCQuestProcessor();
         processor.PushEnterRTCRoomCallback = (long roomId_, long uid_, long mtime_, string nickName) => {
             Debug.Log("pushEnterRTCRoomCallback");
@@ -149,7 +145,7 @@ public class RoomMode : MonoBehaviour
             }, activeRoomId);
         };
 
-        HomePage.client = RTMClient.getInstance(HomePage.rtmEndpoint, HomePage.projectId, uid, processor);
+        HomePage.client = RTMClient.getInstance(HomePage.rtmEndpoint, HomePage.projectId, HomePage.uid, processor);
 
         bool status = HomePage.client.Login((long pid_, long uid_, bool ok, int errorCode) =>
         {
@@ -169,7 +165,7 @@ public class RoomMode : MonoBehaviour
                     AddLog("User " + UID_InputField.text + "login failed.");
                 }
             });
-        }, token);
+        }, HomePage.token);
         if (!status)
         {
             //Tips_Text.text = UID_InputField.text + " 登陆连接失败";

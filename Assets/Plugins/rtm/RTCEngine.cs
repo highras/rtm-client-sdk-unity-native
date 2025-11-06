@@ -175,9 +175,15 @@ namespace com.fpnn.rtm
             lock (interLocker)
             {
                 if (rtcClient == null)
+                {
+                    Debug.Log("rtcClient is null");
                     return false;
+                }
                 if (roomId != -1 && rtcClient.IsInRTCRoom(roomId) == false)
+                {
+                    Debug.Log("roomId is:" + roomId + " rtcClient.IsInRTCRoom(roomId):" + rtcClient.IsInRTCRoom(roomId));
                     return false;
+                }
                 activeRoomId = roomId;
             }
             RTCEngine.InitVoice();
@@ -397,7 +403,7 @@ namespace com.fpnn.rtm
             initRTCEngine(application, VoiceCallback, 1);
 #elif UNITY_OPENHARMONY
             
-            if (requirePermission)
+            if (requirePermission)r
                 RequirePermission(true, requireCamera, null);
             initRTCEngine(VoiceCallback, 2);
 #endif
@@ -405,8 +411,8 @@ namespace com.fpnn.rtm
             routineThread = new Thread(Routine);
             routineThread.Start();
 
-            //videoBufferThread = new Thread(VideoBufferRoutine);
-            //videoBufferThread.Start();
+            videoBufferThread = new Thread(VideoBufferRoutine);
+            videoBufferThread.Start();
         }
 
         public static void InitVoice()
@@ -446,9 +452,9 @@ namespace com.fpnn.rtm
             destroy();
 #endif
             routineThread.Join();
-            // videoBufferEvent.Set();
-            // videoBufferThread.Join();
-            // videoBufferEvent.Close();
+            videoBufferEvent.Set();
+            videoBufferThread.Join();
+            videoBufferEvent.Close();
         }
 
         private static void Routine()
@@ -479,31 +485,31 @@ namespace com.fpnn.rtm
             }
         }
 
-        //private static void VideoBufferRoutine()
-        //{ 
-        //    while (running)
-        //    {
-        //        VideoBuffer buffer = null;
-        //        lock (interLocker)
-        //        { 
-        //            foreach (var bufferList in videoBufferList)
-        //            {
-        //                if (bufferList.Value.Count > videoBufferSize)
-        //                {
-        //                    buffer = bufferList.Value.Values[0];
-        //                    bufferList.Value.RemoveAt(0);
-        //                    break;
-        //                }
-        //            }
-        //        }
-        //        if (buffer == null)
-        //            videoBufferEvent.WaitOne();
-        //        else
-        //        {
-        //            receiveVideo(buffer.uid, buffer.data, buffer.data.Length, buffer.sps, buffer.sps.Length, buffer.pps, buffer.pps.Length, buffer.flags, buffer.timestamp, buffer.seq, buffer.facing);
-        //        }
-        //    }
-        //}
+        private static void VideoBufferRoutine()
+        { 
+            while (running)
+            {
+                VideoBuffer buffer = null;
+                lock (interLocker)
+                { 
+                    foreach (var bufferList in videoBufferList)
+                    {
+                        if (bufferList.Value.Count > videoBufferSize)
+                        {
+                            buffer = bufferList.Value.Values[0];
+                            bufferList.Value.RemoveAt(0);
+                            break;
+                        }
+                    }
+                }
+                if (buffer == null)
+                    videoBufferEvent.WaitOne();
+                else
+                {
+                    receiveVideo(buffer.uid, buffer.data, buffer.data.Length, buffer.sps, buffer.sps.Length, buffer.pps, buffer.pps.Length, buffer.flags, buffer.timestamp, buffer.seq, buffer.facing);
+                }
+            }
+        }
 
         public static void OpenMicroPhone()
         {
@@ -563,7 +569,7 @@ namespace com.fpnn.rtm
             setUserVolume(uid, volume);
 #endif
         }
-
+        
         public static int GetRecvStreamVolume(long uid)
         {
 #if (UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)

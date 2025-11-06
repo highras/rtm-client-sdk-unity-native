@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using com.fpnn.proto;
 using UnityEngine;
+using static UnityEngine.UI.GridLayoutGroup;
 
 namespace com.fpnn.rtm
 {
@@ -716,7 +717,7 @@ namespace com.fpnn.rtm
         }
 
         //===========================[ Get BlockInfo in RTC Room ]=========================//
-        public bool GetBlockInfoInRTCRoom(Action<HashSet<long>, int> callback, long roomId, int timeout = 0)
+        public bool GetBlockInfoInRTCRoom(Action<HashSet<long>, int> callback, long roomId, int timeout = 0) 
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -724,7 +725,7 @@ namespace com.fpnn.rtm
                 if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
                     ClientEngine.RunTask(() =>
                     {
-                        callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                        callback(null,fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
                     });
 
                 return false;
@@ -732,7 +733,7 @@ namespace com.fpnn.rtm
 
             Quest quest = new Quest("getBlockInfoInRTCRoom");
             quest.Param("rid", roomId);
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => 
             {
                 HashSet<long> uids = null;
 
@@ -754,7 +755,7 @@ namespace com.fpnn.rtm
             if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
                 ClientEngine.RunTask(() =>
                 {
-                    callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    callback(null,fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
                 });
 
             return asyncStarted;
